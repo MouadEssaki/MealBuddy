@@ -1,3 +1,4 @@
+
 import pymongo
 from bson import ObjectId
 from flask import Flask, request, jsonify
@@ -8,8 +9,8 @@ myClient = pymongo.MongoClient("mongodb://localhost:27017/")
 myDb = myClient["MealBuddyDb"]
 
 # Collections
-recipes_collection = myDb["Recipes"]
 
+foods_collection = myDb["Foods"]
 
 # Helper to recursively convert ObjectId to string
 def parse_json(data):
@@ -27,53 +28,51 @@ def parse_json(data):
     else:
         return data
 
-# Recipes CRUD
-@app.route('/recipes', methods=['GET'])
-def get_recipes():
-    recipes = list(recipes_collection.find())
-    parsed_recipes = [parse_json(recipe) for recipe in recipes]
-    return jsonify(parsed_recipes)
+# Foods CRUD
+@app.route('/foods', methods=['GET'])
+def get_foods():
+    foods = list(foods_collection.find())
+    return jsonify([parse_json(food) for food in foods])
 
-@app.route('/recipes/<id>', methods=['GET'])
-def get_recipe(id):
+@app.route('/foods/<id>', methods=['GET'])
+def get_food(id):
     try:
-        recipe = recipes_collection.find_one({"_id": ObjectId(id)})
-        if recipe:
-            return parse_json(recipe)
-        return jsonify({"error": "Recipe not found"}), 404
+        food = foods_collection.find_one({"_id": ObjectId(id)})
+        if food:
+            return parse_json(food)
+        return jsonify({"error": "Food not found"}), 404
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-@app.route('/recipes', methods=['POST'])
-def add_recipe():
+@app.route('/foods', methods=['POST'])
+def add_food():
     data = request.get_json()
-    data["created_at"] = datetime.now()
-    result = recipes_collection.insert_one(data)
+    result = foods_collection.insert_one(data)
     return jsonify({"_id": str(result.inserted_id)}), 201
 
-@app.route('/recipes/<id>', methods=['PUT'])
-def update_recipe(id):
+@app.route('/foods/<id>', methods=['PUT'])
+def update_food(id):
     try:
         data = request.get_json()
-        result = recipes_collection.update_one(
+        result = foods_collection.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
         )
         if result.matched_count == 0:
-            return jsonify({"error": "Recipe not found"}), 404
+            return jsonify({"error": "Food not found"}), 404
         return jsonify({"modified": result.modified_count}), 200
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-@app.route('/recipes/<id>', methods=['DELETE'])
-def delete_recipe(id):
+@app.route('/foods/<id>', methods=['DELETE'])
+def delete_food(id):
     try:
-        result = recipes_collection.delete_one({"_id": ObjectId(id)})
+        result = foods_collection.delete_one({"_id": ObjectId(id)})
         if result.deleted_count == 0:
-            return jsonify({"error": "Recipe not found"}), 404
+            return jsonify({"error": "Food not found"}), 404
         return jsonify({"deleted": result.deleted_count}), 200
     except:
         return jsonify({"error": "Invalid ID"}), 400
-
+    
 
 if __name__ == '__main__':
     app.run()
