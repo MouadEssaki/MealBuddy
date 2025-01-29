@@ -1,15 +1,9 @@
-import pymongo
+from flask import Blueprint, request, jsonify, current_app
 from bson import ObjectId
-from flask import Flask, request, jsonify
 from datetime import datetime
 
-app = Flask(__name__)
-myClient = pymongo.MongoClient("mongodb://localhost:27017/")
-myDb = myClient["MealBuddyDb"]
-
-# Collections
-recipes_collection = myDb["Recipes"]
-
+# Create a Blueprint for recipes
+recipes_bp = Blueprint('recipes', __name__, url_prefix='/api')
 
 # Helper to recursively convert ObjectId to string
 def parse_json(data):
@@ -27,35 +21,46 @@ def parse_json(data):
     else:
         return data
 
-# Recipes CRUD
-@app.route('/recipes', methods=['GET'])
+# --------------------------------------------------------------------------
+# Recipes Routes
+# --------------------------------------------------------------------------
+
+# Get all recipes
+@recipes_bp.route('/recipes', methods=['GET'])
 def get_recipes():
-    recipes = list(recipes_collection.find())
+    db = current_app.config['db']
+    recipes = list(db.Recipes.find())  # Fetch all recipes from the Recipes collection
     parsed_recipes = [parse_json(recipe) for recipe in recipes]
     return jsonify(parsed_recipes)
 
-@app.route('/recipes/<id>', methods=['GET'])
+# Get a specific recipe by ID
+@recipes_bp.route('/recipes/<id>', methods=['GET'])
 def get_recipe(id):
+    db = current_app.config['db']
     try:
-        recipe = recipes_collection.find_one({"_id": ObjectId(id)})
+        recipe = db.Recipes.find_one({"_id": ObjectId(id)})
         if recipe:
-            return parse_json(recipe)
+            return jsonify(parse_json(recipe))
         return jsonify({"error": "Recipe not found"}), 404
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-@app.route('/recipes', methods=['POST'])
+# Create a new recipe
+@recipes_bp.route('/recipes', methods=['POST'])
 def add_recipe():
+    db = current_app.config['db']
     data = request.get_json()
     data["created_at"] = datetime.now()
-    result = recipes_collection.insert_one(data)
+    result = db.Recipes.insert_one(data)
     return jsonify({"_id": str(result.inserted_id)}), 201
 
-@app.route('/recipes/<id>', methods=['PUT'])
+# Update a recipe by ID
+@recipes_bp.route('/recipes/<id>', methods=['PUT'])
 def update_recipe(id):
+    db = current_app.config['db']
     try:
         data = request.get_json()
-        result = recipes_collection.update_one(
+        result = db.Recipes.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
         )
         if result.matched_count == 0:
@@ -64,16 +69,14 @@ def update_recipe(id):
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-@app.route('/recipes/<id>', methods=['DELETE'])
+# Delete a recipe by ID
+@recipes_bp.route('/recipes/<id>', methods=['DELETE'])
 def delete_recipe(id):
+    db = current_app.config['db']
     try:
-        result = recipes_collection.delete_one({"_id": ObjectId(id)})
+        result = db.Recipes.delete_one({"_id": ObjectId(id)})
         if result.deleted_count == 0:
             return jsonify({"error": "Recipe not found"}), 404
         return jsonify({"deleted": result.deleted_count}), 200
     except:
         return jsonify({"error": "Invalid ID"}), 400
-
-
-if __name__ == '__main__':
-    app.run()

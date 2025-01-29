@@ -3,6 +3,9 @@ import pymongo
 from Users.UsersCrud import users_bp
 from MealLogs.MealLogsCrud import meal_logs_bp
 from MealPlans.MealPlansCrud import meal_plans_bp
+from Recipes.RecipesCrud import recipes_bp
+from Foods.FoodsCrud import foods_bp
+
 
 
 
@@ -18,6 +21,8 @@ def create_app():
     app.register_blueprint(users_bp)
     app.register_blueprint(meal_logs_bp)
     app.register_blueprint(meal_plans_bp)
+    app.register_blueprint(recipes_bp)
+    app.register_blueprint(foods_bp)
 
 
 

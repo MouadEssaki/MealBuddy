@@ -1,16 +1,9 @@
-
-import pymongo
+from flask import Blueprint, request, jsonify, current_app
 from bson import ObjectId
-from flask import Flask, request, jsonify
 from datetime import datetime
 
-app = Flask(__name__)
-myClient = pymongo.MongoClient("mongodb://localhost:27017/")
-myDb = myClient["MealBuddyDb"]
-
-# Collections
-
-foods_collection = myDb["Foods"]
+# Create a Blueprint for foods
+foods_bp = Blueprint('foods', __name__, url_prefix='/api')
 
 # Helper to recursively convert ObjectId to string
 def parse_json(data):
@@ -28,33 +21,44 @@ def parse_json(data):
     else:
         return data
 
-# Foods CRUD
-@app.route('/foods', methods=['GET'])
+# --------------------------------------------------------------------------
+# Foods Routes
+# --------------------------------------------------------------------------
+
+# Get all foods
+@foods_bp.route('/foods', methods=['GET'])
 def get_foods():
-    foods = list(foods_collection.find())
+    db = current_app.config['db']
+    foods = list(db.Foods.find())  # Fetch all foods from the Foods collection
     return jsonify([parse_json(food) for food in foods])
 
-@app.route('/foods/<id>', methods=['GET'])
+# Get a specific food by ID
+@foods_bp.route('/foods/<id>', methods=['GET'])
 def get_food(id):
+    db = current_app.config['db']
     try:
-        food = foods_collection.find_one({"_id": ObjectId(id)})
+        food = db.Foods.find_one({"_id": ObjectId(id)})
         if food:
-            return parse_json(food)
+            return jsonify(parse_json(food))
         return jsonify({"error": "Food not found"}), 404
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-@app.route('/foods', methods=['POST'])
+# Create a new food
+@foods_bp.route('/foods', methods=['POST'])
 def add_food():
+    db = current_app.config['db']
     data = request.get_json()
-    result = foods_collection.insert_one(data)
+    result = db.Foods.insert_one(data)
     return jsonify({"_id": str(result.inserted_id)}), 201
 
-@app.route('/foods/<id>', methods=['PUT'])
+# Update a food by ID
+@foods_bp.route('/foods/<id>', methods=['PUT'])
 def update_food(id):
+    db = current_app.config['db']
     try:
         data = request.get_json()
-        result = foods_collection.update_one(
+        result = db.Foods.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
         )
         if result.matched_count == 0:
@@ -63,16 +67,14 @@ def update_food(id):
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-@app.route('/foods/<id>', methods=['DELETE'])
+# Delete a food by ID
+@foods_bp.route('/foods/<id>', methods=['DELETE'])
 def delete_food(id):
+    db = current_app.config['db']
     try:
-        result = foods_collection.delete_one({"_id": ObjectId(id)})
+        result = db.Foods.delete_one({"_id": ObjectId(id)})
         if result.deleted_count == 0:
             return jsonify({"error": "Food not found"}), 404
         return jsonify({"deleted": result.deleted_count}), 200
     except:
         return jsonify({"error": "Invalid ID"}), 400
-    
-
-if __name__ == '__main__':
-    app.run()
