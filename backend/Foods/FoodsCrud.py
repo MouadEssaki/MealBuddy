@@ -2,8 +2,8 @@ from flask import Blueprint, request, jsonify, current_app
 from bson import ObjectId
 from datetime import datetime
 
-# Create a Blueprint for recipes
-recipes_bp = Blueprint('recipes', __name__, url_prefix='/api')
+# Create a Blueprint for foods
+foods_bp = Blueprint('foods', __name__, url_prefix='/api')
 
 # Helper to recursively convert ObjectId to string
 def parse_json(data):
@@ -22,61 +22,59 @@ def parse_json(data):
         return data
 
 # --------------------------------------------------------------------------
-# Recipes Routes
+# Foods Routes
 # --------------------------------------------------------------------------
 
-# Get all recipes
-@recipes_bp.route('/recipes', methods=['GET'])
-def get_recipes():
+# Get all foods
+@foods_bp.route('/foods', methods=['GET'])
+def get_foods():
     db = current_app.config['db']
-    recipes = list(db.Recipes.find())  # Fetch all recipes from the Recipes collection
-    parsed_recipes = [parse_json(recipe) for recipe in recipes]
-    return jsonify(parsed_recipes)
+    foods = list(db.Foods.find())  # Fetch all foods from the Foods collection
+    return jsonify([parse_json(food) for food in foods])
 
-# Get a specific recipe by ID
-@recipes_bp.route('/recipes/<id>', methods=['GET'])
-def get_recipe(id):
+# Get a specific food by ID
+@foods_bp.route('/foods/<id>', methods=['GET'])
+def get_food(id):
     db = current_app.config['db']
     try:
-        recipe = db.Recipes.find_one({"_id": ObjectId(id)})
-        if recipe:
-            return jsonify(parse_json(recipe))
-        return jsonify({"error": "Recipe not found"}), 404
+        food = db.Foods.find_one({"_id": ObjectId(id)})
+        if food:
+            return jsonify(parse_json(food))
+        return jsonify({"error": "Food not found"}), 404
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-# Create a new recipe
-@recipes_bp.route('/recipes', methods=['POST'])
-def add_recipe():
+# Create a new food
+@foods_bp.route('/foods', methods=['POST'])
+def add_food():
     db = current_app.config['db']
     data = request.get_json()
-    data["created_at"] = datetime.now()
-    result = db.Recipes.insert_one(data)
+    result = db.Foods.insert_one(data)
     return jsonify({"_id": str(result.inserted_id)}), 201
 
-# Update a recipe by ID
-@recipes_bp.route('/recipes/<id>', methods=['PUT'])
-def update_recipe(id):
+# Update a food by ID
+@foods_bp.route('/foods/<id>', methods=['PUT'])
+def update_food(id):
     db = current_app.config['db']
     try:
         data = request.get_json()
-        result = db.Recipes.update_one(
+        result = db.Foods.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
         )
         if result.matched_count == 0:
-            return jsonify({"error": "Recipe not found"}), 404
+            return jsonify({"error": "Food not found"}), 404
         return jsonify({"modified": result.modified_count}), 200
     except:
         return jsonify({"error": "Invalid ID"}), 400
 
-# Delete a recipe by ID
-@recipes_bp.route('/recipes/<id>', methods=['DELETE'])
-def delete_recipe(id):
+# Delete a food by ID
+@foods_bp.route('/foods/<id>', methods=['DELETE'])
+def delete_food(id):
     db = current_app.config['db']
     try:
-        result = db.Recipes.delete_one({"_id": ObjectId(id)})
+        result = db.Foods.delete_one({"_id": ObjectId(id)})
         if result.deleted_count == 0:
-            return jsonify({"error": "Recipe not found"}), 404
+            return jsonify({"error": "Food not found"}), 404
         return jsonify({"deleted": result.deleted_count}), 200
     except:
         return jsonify({"error": "Invalid ID"}), 400

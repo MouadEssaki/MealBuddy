@@ -1,0 +1,120 @@
+"Generate a culinary recipe in JSON format strictly adhering to the following structure. The recipe must:
+
+Include only the ingredient NAMES specified by the user in the mandatory_ingredients field.
+
+Contain:
+
+A unique title.
+
+A mandatory user_id (the creator’s ID, provided by the user).
+
+An optional theme (e.g., 'Italian', 'keto').
+
+A mandatory_ingredients array listing the ingredient NAMES provided by the user (e.g., ["chicken", "garlic"]).
+
+An ingredients array detailing only the items in mandatory_ingredients, each with:
+
+name (same as in mandatory_ingredients),
+
+quantity (e.g., "200g"),
+
+category,
+
+nutritional_info per ingredient (pulled from the Foods collection).
+
+Logical steps using exclusively the listed ingredients.
+
+tags aligned with the theme and ingredients.
+
+ai_generated: true, created_at (current ISO date), shared_by: null.
+
+
+Constraints:
+
+The mandatory_ingredients array must use valid ingredient names that exist in the Foods collection.
+
+The system must map ingredient names to their corresponding category and nutritional_info from the Foods collection.
+
+Each ingredient’s nutritional_info must include:
+
+json
+Copy
+"nutritional_info": {
+  "calories": "number (kcal)",
+  "proteins": "number (g)",
+  "carbs": "number (g)",
+  "fats": "number (g)",
+  "fiber": "number (g)",
+  "sugars": "number (g)",
+  "sodium": "number (mg)",
+  "cholesterol": "number (mg)"
+}
+The recipe’s overall nutritional_info must aggregate values from all ingredients.
+
+Example Structure:
+
+json
+Copy
+{
+  "user_id": "USER_PROVIDED_ID", // Mandatory field from user input
+  "title": "Garlic Herb Chicken",
+  "theme": "low-carb",
+  "mandatory_ingredients": ["chicken breast", "garlic", "olive oil"], 
+  "ingredients": [
+    {
+      "name": "chicken breast",
+      "quantity": "300g",
+      "category": "poultry",
+      "nutritional_info": {
+        "calories": 165,
+        "proteins": 31,
+        "carbs": 0,
+        "fats": 3.6,
+        "fiber": 0,
+        "sugars": 0,
+        "sodium": 64,
+        "cholesterol": 85
+      }
+    },
+    {
+      "name": "garlic",
+      "quantity": "3 cloves",
+      "category": "vegetable",
+      "nutritional_info": {
+        "calories": 4,
+        "proteins": 0.2,
+        "carbs": 1,
+        "fats": 0,
+        "fiber": 0.1,
+        "sugars": 0,
+        "sodium": 1,
+        "cholesterol": 0
+      }
+    }
+  ],
+  "steps": [
+    "1. Marinate the chicken breast with minced garlic and olive oil.",
+    "2. Grill for 6-8 minutes per side..."
+  ],
+  "nutritional_info": { // Aggregated totals
+    "calories": 169,
+    "proteins": 31.2,
+    "carbs": 1,
+    "fats": 3.6,
+    "fiber": 0.1,
+    "sugars": 0,
+    "sodium": 65,
+    "cholesterol": 85
+  },
+  "tags": ["low-carb", "high-protein", "grilled"],
+  "ai_generated": true,
+  "shared_by": null,
+  "created_at": "2024-07-21T12:00:00Z"
+}
+
+here the recepe info:
+{
+  "user_id": ObjectId("507f191e810c19729de860ea"), 
+  "mandatory_ingredients": ["flour", "sugar", "eggs", "butter"],  
+  "theme": "baking"  // Theme of the recipe
+}"
