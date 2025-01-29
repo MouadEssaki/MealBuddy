@@ -1,6 +1,7 @@
 from flask import Flask
 import pymongo
 from Users.UsersCrud import users_bp
+from MealLogs.MealLogsCrud import meal_logs_bp
 
 def create_app():
     # Initialize Flask app
@@ -12,6 +13,8 @@ def create_app():
 
     # Register Blueprints
     app.register_blueprint(users_bp)
+    app.register_blueprint(meal_logs_bp)
+
 
     return app
 
