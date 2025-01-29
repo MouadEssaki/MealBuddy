@@ -8,11 +8,6 @@ meal_plans_bp = Blueprint('meal_plans', __name__, url_prefix='/api')
 # Meal Plans Routes
 # --------------------------------------------------------------------------
 
-# Route test
-@meal_plans_bp.route("/", methods=["GET"])
-def home():
-    return jsonify({"message": "API Flask fonctionne avec MongoDB Compass !"})
-
 # Get all meal plans
 @meal_plans_bp.route("/MealPlans", methods=["GET"])
 def get_meal_plans():
