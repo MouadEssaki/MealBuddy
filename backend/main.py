@@ -1,7 +1,9 @@
 from flask import Flask
 import pymongo
+
 from Users.UsersCrud import users_bp
 from MealLogs.MealLogsCrud import meal_logs_bp
+from ShoppingLists.ShoppingListsCrud import shopping_lists_bp
 from MealPlans.MealPlansCrud import meal_plans_bp
 from Recipes.RecipesCrud import recipes_bp
 from Foods.FoodsCrud import foods_bp
@@ -20,6 +22,7 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(users_bp)
     app.register_blueprint(meal_logs_bp)
+    app.register_blueprint(shopping_lists_bp)
     app.register_blueprint(meal_plans_bp)
     app.register_blueprint(recipes_bp)
     app.register_blueprint(foods_bp)
