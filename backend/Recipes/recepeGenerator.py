@@ -80,6 +80,8 @@ def generate_and_save_recipe(user_id, mandatory_ingredients, theme):
             {{
             "name": "chicken breast",
             "quantity": "300g",
+            "quantity_description": "1 medium",
+            "quantity_measurement": "300g",
             "category": "poultry",
             "nutritional_info": {{
                 "calories": 165,
@@ -95,6 +97,8 @@ def generate_and_save_recipe(user_id, mandatory_ingredients, theme):
             {{
             "name": "garlic",
             "quantity": "3 cloves",
+            "quantity_description": "3 cloves",
+            "quantity_measurement": "9g",
             "category": "vegetable",
             "nutritional_info": {{
                 "calories": 4,
@@ -181,12 +185,14 @@ def generate_and_save_recipe(user_id, mandatory_ingredients, theme):
         # Traitement de chaque ingrédient
         for ingredient in recipe_json["ingredients"]:
             # Vérification dans Foods
-            existing_food = foods_collection.find_one({"name": ingredient["name"]})
+            existing_food = foods_collection.find_one({"name": ingredient["name"].capitalize()})
             
             if not existing_food:
                 new_food = {
-                    "name": ingredient["name"],
-                    "category": ingredient["category"],
+                    "name": ingredient["name"].capitalize(),
+                    "category": ingredient["category"].capitalize(),
+                    "quantity_description" : ingredient["quantity_description"],
+                    "quantity_measurement": ingredient["quantity_measurement"],
                     "nutritional_info": ingredient["nutritional_info"]
                 }
                 food_id = foods_collection.insert_one(new_food).inserted_id
@@ -233,7 +239,7 @@ def generate_and_save_recipe(user_id, mandatory_ingredients, theme):
 # Exemple d'utilisation
 result = generate_and_save_recipe(
     user_id="507f191e810c19729de860ea",
-    mandatory_ingredients=["flour", "tomato", "eggs", "olive oil"],
+    mandatory_ingredients=["ananas","apple","banana","soy milk"],
     theme="baking"
 )
 

@@ -1,0 +1,110 @@
+{
+  search_term : tomato  
+}
+
+Constraints:
+- quantity_description and quantity_measurement are mandatory fields.
+- Use Canadian dietary standards for portions (e.g., 1 cup = 250ml, 1 tbsp = 15ml).
+- Nutritional values must match the exact quantity_measurement (no approximations).
+- Return results [] only if no matches exist.
+- Prioritize clarity. Separate descriptive terms (e.g., 1 slice) from measurements (e.g., 30g).
+
+Generate a JSON response strictly adhering to the following structure when a user searches for a food keyword. The response must:
+
+- Use the exact keyword provided by the user in the `search_term` field (case-insensitive).
+- Search the Foods collection for ALL entries where:
+  1. The name EXACTLY MATCHES the `search_term` (e.g., tomato for tomato).
+  2. The name CONTAINS the `search_term` (e.g., tomato sauce for tomato).
+- Return an array of food objects, each containing:
+  - `name`: Full English name of the food.
+  - `category`: Category (e.g., fruit, beverage, snack).
+  - `quantity_description`: Textual description of the portion (e.g., 1 medium, 1 cup).
+  - `quantity_measurement`: Exact measurement with unit (e.g., 182g, 250ml).
+  - `nutritional_info`: Nutritional data per portion, aligned with the Canadian Nutrition Chart, including:
+    ```json
+    nutritional_info {
+      calories: number (kcal),
+      proteins: number (g),
+      carbs: number (g),
+      fats: number (g),
+      fiber: number (g),
+      sugars: number (g),
+      sodium: number (mg),
+      cholesterol: number (mg)
+    }
+    ```
+
+Example Response for search_term tomato:
+
+```json
+{
+  search_term: "tomato",
+  results: [
+    {
+      name: "Tomato",
+      category: "vegetable",
+      quantity_description: "1 medium",
+      quantity_measurement: "123g",
+      nutritional_info: {
+        calories: 22,
+        proteins: 1.1,
+        carbs: 4.8,
+        fats: 0.2,
+        fiber: 1.5,
+        sugars: 3.2,
+        sodium: 5,
+        cholesterol: 0
+      }
+    },
+    {
+      name: "Tomato Sauce",
+      category: "condiment",
+      quantity_description: "1/4 cup",
+      quantity_measurement: "60g",
+      nutritional_info: {
+        calories: 15,
+        proteins: 0.5,
+        carbs: 3.5,
+        fats: 0.1,
+        fiber: 0.7,
+        sugars: 2.5,
+        sodium: 210,
+        cholesterol: 0
+      }
+    },
+    {
+      name: "Tomato Juice",
+      category: "beverage",
+      quantity_description: "1 cup",
+      quantity_measurement: "240ml",
+      nutritional_info: {
+        calories: 40,
+        proteins: 1.0,
+        carbs: 9.0,
+        fats: 0.1,
+        fiber: 1.0,
+        sugars: 6.0,
+        sodium: 400,
+        cholesterol: 0
+      }
+    },
+    {
+      name: "Dried Tomatoes",
+      category: "snack",
+      quantity_description: "30g",
+      quantity_measurement: "30g",
+      nutritional_info: {
+        calories: 80,
+        proteins: 3.0,
+        carbs: 18.0,
+        fats: 1.0,
+        fiber: 4.0,
+        sugars: 14.0,
+        sodium: 10,
+        cholesterol: 0
+      }
+    }
+  ],
+  ai_generated: true,
+  searched_at: "2024-07-21T143000Z"
+}
