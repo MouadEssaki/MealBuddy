@@ -1,6 +1,5 @@
-// app/_layout.js
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // For icons (optional)
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Layout() {
   return (
@@ -12,6 +11,17 @@ export default function Layout() {
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      
+      {/* About Tab */}
+      <Tabs.Screen
+        name="Recipes"
+        options={{
+          title: 'Recipes',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="information-circle" size={size} color={color} />
           ),
         }}
       />
