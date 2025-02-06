@@ -1,55 +1,78 @@
-import { Tabs } from "expo-router";
+import { View, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 
 export default function Layout() {
   return (
-    <Tabs>
-      {/* Home Tab */}
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
-      />
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <Tabs
+        screenOptions={({ route }) => ({
+          tabBarStyle: styles.tabBar,
+          tabBarActiveTintColor: "#105F3B",
+          tabBarInactiveTintColor: "#9E9E9E",
+          headerShown: false,
+          tabBarIcon: ({ color, size, focused }) => {
+            let iconName;
+            switch (route.name) {
+              case "FoodDiary":
+                iconName = "book-outline";
+                break;
+              case "Recipes":
+                iconName = "restaurant-outline";
+                break;
+              case "index":
+                iconName = "home-outline";
+                break;
+              case "Notifications":
+                iconName = "notifications-outline";
+                break;
+              case "Profile":
+                iconName = "person-outline";
+                break;
+            }
 
-<<<<<<< HEAD
-      {/* Recipes Tab */}
-=======
-      {/* About Tab */}
->>>>>>> 63d3d2c9dfce6a5b748e8eeee2c0994972611e7a
-      <Tabs.Screen
-        name="Recipes"
-        options={{
-          title: "Recipes",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="restaurant" size={size} color={color} />
-          ),
-        }}
-      />
+            const iconSize = focused ? 33 : 30;
 
-      {/* Profile Tab */}
-      <Tabs.Screen
-        name="Profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="FoodDiary"
-        options={{
-          title: 'Food Diary',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="information-circle" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+            return (
+              <View style={focused ? styles.activeTab : styles.inactiveTab}>
+                <Ionicons name={iconName} size={iconSize} color={focused ? "#fff" : color} />
+              </View>
+            );
+          },
+        })}
+      >
+        <Tabs.Screen name="FoodDiary" options={{ title: "" }} />
+        <Tabs.Screen name="Recipes" options={{ title: "" }} />
+        <Tabs.Screen name="index" options={{ title: "" }} />
+        <Tabs.Screen name="Notifications" options={{ title: "" }} />
+        <Tabs.Screen name="Profile" options={{ title: "" }} />
+      </Tabs>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  tabBar: {
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+  },
+  activeTab: {
+    backgroundColor: "#68AA64",
+    width: 55,
+    height: 55,
+    borderRadius: 27.5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  inactiveTab: {
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

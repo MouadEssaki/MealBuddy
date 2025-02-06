@@ -1,59 +1,81 @@
 import React from 'react';
 import { View, ScrollView, Image } from 'react-native';
-import { Input } from '@ui-kitten/components';
-import { ApplicationProvider, Layout, Text, Card } from '@ui-kitten/components';
+import { Input, Button, Icon, Text, Card } from '@ui-kitten/components';
+import { ApplicationProvider, Layout } from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
-import { customTheme } from './customTheme';  // Assurez-vous que le thème est bien importé
-import { Button, Icon } from '@ui-kitten/components';
+import { customTheme } from './customTheme';
+import { TextInput } from 'react-native-gesture-handler';
+
 
 export default function Recipes() {
+    const SearchIcon = (props) => <Icon name='search-outline' {...props} />;
+    const StarIcon = (props) => <Icon name='star' fill='#FFD700' {...props} />;
+    const ClockIcon = (props) => <Icon name='clock-outline' {...props} fill="#555" />;
+    const PersonIcon = (props) => <Icon name='person-outline' {...props} fill="#555" />;
+
     const recipes = [
-        { id: 1, name: "Spaghetti Bolognese", description: "A classic Italian dish." },
-        { id: 2, name: "Chicken Curry", description: "A flavorful and spicy curry." },
-        { id: 3, name: "Vegetable Stir Fry", description: "A healthy and quick stir fry." },
-        { id: 4, name: "Beef Stew", description: "A hearty and filling stew." },
-        { id: 5, name: "Fish Tacos", description: "Fresh and light tacos with fish." },
+        { id: 1, name: "Chicken Burger with Nuggets", description: "Mouth-watering burger with French side toppings.", image: "https://picsum.photos/600/400" },
+        { id: 2, name: "Spaghetti Bolognese", description: "Classic Italian pasta with meat sauce.", image: "https://picsum.photos/601/400" },
+        { id: 3, name: "Grilled Salmon", description: "Delicious grilled salmon with lemon butter sauce.", image: "https://picsum.photos/602/400" },
     ];
 
-    const SearchIcon = (props) => (
-        <Icon name='search' {...props} />
-    );
-
     return (
-        <ApplicationProvider {...eva} theme={customTheme}>
-            <Layout style={{ flex: 1, backgroundColor: customTheme.fond }}>
-                <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
-                    {/* TextInput pour la recherche */}
-                    <Input
-                        accessoryLeft={SearchIcon}
-                        style={{
-                            height: 60,
-                            borderColor: "#f9f2e8",
-                            borderWidth: 1,
-                            width: '80%',
-                            borderRadius: 20,
-                            paddingLeft: 10,
-                            marginBottom: 20,
-                            backgroundColor: "#f9f2e8"
-                        }}
-                        placeholder="Search for a recipe"
-                    />
+        <ApplicationProvider {...eva} theme={eva.light}>
+            <Layout style={{ flex: 1, backgroundColor: "white", padding: 20 }}>
 
-                    {/* ScrollView pour afficher la liste des recettes */}
-                    <ScrollView style={{ width: '100%' }}>
-                        {recipes.map((recipe) => (
-                            <Card key={recipe.id} style={{ margin: 5, borderRadius: 20, backgroundColor: "#FFF4E4" }}>
-                                <Image source={{ uri: 'https://picsum.photos/200/300' }} style={{ width: "100%", height: 150, borderRadius: 10 }} />
-                                <Text category='h5' >
-                                    {recipe.name}
-                                </Text>
-                                <Text >
-                                    {recipe.description}
-                                </Text>
-                            </Card>
-                        ))}
-                    </ScrollView>
+
+                {/* Search Bar Agrandie */}
+                <Input
+                    placeholder="Party Food"
+                    accessoryLeft={SearchIcon}
+                    size='large'
+
+                    style={{
+                        fontSize: 18,
+                        borderRadius: 30,
+                        backgroundColor: "#F2F2F2",
+                        borderWidth: 0,
+                        paddingLeft: 15,
+                        marginBottom: 25,
+                    }}
+                />
+
+                {/* Recipes Section Header */}
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <Text category="h5" style={{ fontWeight: 'bold' }}>Recipes</Text>
+                    <Button appearance="ghost" size="tiny">View All</Button>
                 </View>
+
+                {/* Recipes List */}
+                <ScrollView>
+                    {recipes.map((recipe) => (
+                        <View key={recipe.id} style={{ borderRadius: 20, padding: 0, overflow: 'hidden', marginBottom: 20, backgroundColor: customTheme["beige"] }}>
+                            {/* Full-width Image */}
+                            <Image source={{ uri: recipe.image }} style={{ width: "100%", height: 180, borderTopLeftRadius: 20 }} />
+
+                            {/* Recipe Details */}
+                            <View style={{ padding: 15 }}>
+                                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
+                                    <ClockIcon style={{ width: 16, height: 16 }} />
+                                    <Text style={{ marginLeft: 5, fontSize: 12 }}>15 min</Text>
+                                    <PersonIcon style={{ width: 16, height: 16, marginLeft: 10 }} />
+                                    <Text style={{ marginLeft: 5, fontSize: 12 }}>1 serve</Text>
+                                </View>
+
+                                <Text category='h6' style={{ fontWeight: 'bold' }}>{recipe.name}</Text>
+                                <Text appearance="hint">{recipe.description}</Text>
+
+                                {/* Star Rating */}
+                                <View style={{ flexDirection: "row", marginTop: 10 }}>
+                                    {[...Array(5)].map((_, i) => (
+                                        <StarIcon key={i} style={{ width: 16, height: 16, marginRight: 3 }} />
+                                    ))}
+                                </View>
+                            </View>
+                        </View>
+                    ))}
+                </ScrollView>
+
             </Layout>
         </ApplicationProvider>
     );
