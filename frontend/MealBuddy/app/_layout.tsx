@@ -15,7 +15,11 @@ export default function Layout() {
         }}
       />
 
+<<<<<<< HEAD
       {/* Recipes Tab */}
+=======
+      {/* About Tab */}
+>>>>>>> 63d3d2c9dfce6a5b748e8eeee2c0994972611e7a
       <Tabs.Screen
         name="Recipes"
         options={{
@@ -33,6 +37,16 @@ export default function Layout() {
           title: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="FoodDiary"
+        options={{
+          title: 'Food Diary',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="information-circle" size={size} color={color} />
           ),
         }}
       />
