@@ -65,10 +65,11 @@ export default function MealPlanScreen() {
     return (
         <ApplicationProvider {...eva} theme={customTheme} >
             <Layout style={styles.container}>
+            <ScrollView contentContainerStyle={{ alignItems: "center" }} showsVerticalScrollIndicator={false}>
+
                 <View style={styles.header}>
                     <Text category='h5' style={styles.headerTitle}>Your 7-Day Meal Plan</Text>
                 </View>
-                <ScrollView>
                     {Object.entries(mealPlan).map(([day, meals]) => (
                         <DayCard key={day} day={day} meals={meals} />
                     ))}
@@ -79,13 +80,13 @@ export default function MealPlanScreen() {
 }
 
 const styles = {
-    container: { flex: 1, backgroundColor: customTheme.fond, padding: 15, marginTop: 50 },
+    container: { flex: 1, backgroundColor: customTheme.fond, padding: 15, marginTop: 50, paddingBottom: 0 },
     header: { alignItems: 'center', marginBottom: 20 },
-    headerTitle: { color: customTheme.orange, fontWeight: 'bold' },
+    headerTitle: { color: customTheme.vertClaire, fontWeight: 'bold' },
     dayCard: { marginBottom: 15, borderRadius: 10, backgroundColor: customTheme.beige, padding: 10 },
     dayTitle: { color: customTheme.vert, fontWeight: 'bold', marginBottom: 10 },
     mealCard: { marginVertical: 5, borderRadius: 10, backgroundColor: customTheme.fond },
-    mealTitle: { color: customTheme.orange, fontWeight: 'bold' },
+    mealTitle: { color: customTheme.vertClaire, fontWeight: 'bold' },
     section: { color: customTheme.vert, fontWeight: 'bold', marginTop: 5 },
     text: { marginLeft: 10, color: customTheme.vert },
     button: { marginTop: 5 }

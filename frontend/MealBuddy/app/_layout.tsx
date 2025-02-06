@@ -191,7 +191,7 @@ export default function Layout() {
               },
             ]}
           >
-            <Text style={{ fontSize: 30, fontWeight: "bold", color: "#b85317" }}>Add a meal:</Text>
+            <Text style={{ fontSize: 30, fontWeight: "bold", color: "#68AA64" }}>Add a meal:</Text>
             <Pressable
               style={styles.modalButton}
               onPress={() => {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {},
   closeText: {
-    color: '#b85317',
+    color: '#68AA64',
     fontSize: 20,
     fontWeight: 'bold',
   },
