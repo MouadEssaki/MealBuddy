@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons"; // Imported Ionicons for tab icons
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Animated,
@@ -74,7 +75,6 @@ export default function Layout() {
     });
   };
 
-
   const openOverlay = () => {
     setOverlayVisible(true);
     slideIn();
@@ -102,7 +102,7 @@ export default function Layout() {
           }}
         />
 
-        {/* Dummy Plus Screen using an image */}
+        {/* Plus Tab */}
         <Tabs.Screen
           name="Plus" // Dummy route; you should have a dummy file for it.
           options={{
@@ -118,8 +118,7 @@ export default function Layout() {
           }}
           listeners={{
             tabPress: (e) => {
-              // Prevent navigation; we only want the overlay.
-              e.preventDefault();
+              e.preventDefault(); // Prevent navigation; only the overlay should open
               openOverlay();
             },
           }}
@@ -225,7 +224,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    //box shadow
     shadowColor: 'rgba(0, 0, 0, 0.4)',
     shadowOffset: {
       width: 0,
@@ -256,21 +254,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 10,
     shadowColor: 'rgba(149, 157, 165, 0.2)',
-  shadowOffset: { 
-    width: 0, 
-    height: 8 
-  },
-  shadowRadius: 24,
-  shadowOpacity: 1, // We set this to 1 because the opacity is already in the shadowColor
-  elevation: 8, // For Android, adjust this value as needed
+    shadowOffset: { 
+      width: 0, 
+      height: 8 
+    },
+    shadowRadius: 24,
+    shadowOpacity: 1, 
+    elevation: 8, // For Android
   },
   buttonText: {
     fontSize: 16,
     color: 'white',
     fontWeight: 'bold',
   },
-  closeButton: {
-  },
+  closeButton: {},
   closeText: {
     color: '#b85317',
     fontSize: 20,
