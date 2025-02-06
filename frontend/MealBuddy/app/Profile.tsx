@@ -22,7 +22,7 @@ export default function Profile() {
 
     return (
         <ApplicationProvider {...eva} theme={customTheme}>
-            <Layout style={{ flex: 1, backgroundColor: customTheme.fond, padding: 20 }}>
+            <Layout style={{ flex: 1, backgroundColor: customTheme.fond, padding: 20,marginTop: 50 }}>
                 {/* Header avec l'avatar et le bouton de déconnexion */}
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                     <Image source={{ uri: user.avatar }} style={{ width: 80, height: 80, borderRadius: 40 }} />

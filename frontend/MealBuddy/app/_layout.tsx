@@ -86,7 +86,7 @@ export default function Layout() {
 
   return (
     <>
-      <Tabs screenOptions={{ tabBarShowLabel: false }}>
+      <Tabs screenOptions={{ tabBarShowLabel: false,headerShown: false }}>
         {/* Home Tab */}
         <Tabs.Screen
           name="index"
@@ -96,6 +96,23 @@ export default function Layout() {
                 focused={focused}
                 activeSource={require('../assets/bottomBar/Bold/Home.png')}
                 inactiveSource={require('../assets/bottomBar/Light/Home.png')}
+                activeScale={1.15}
+              />
+            ),
+          }}
+        />
+
+
+
+        {/* Recipes Tab */}
+        <Tabs.Screen
+          name="Recipes"
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <AnimatedTabIcon
+                focused={focused}
+                activeSource={require('../assets/bottomBar/Bold/Recipes.png')}
+                inactiveSource={require('../assets/bottomBar/Light/Recipes.png')}
                 activeScale={1.15}
               />
             ),
@@ -124,24 +141,9 @@ export default function Layout() {
           }}
         />
 
-        {/* Recipes Tab */}
-        <Tabs.Screen
-          name="Recipes"
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                activeSource={require('../assets/bottomBar/Bold/Recipes.png')}
-                inactiveSource={require('../assets/bottomBar/Light/Recipes.png')}
-                activeScale={1.15}
-              />
-            ),
-          }}
-        />
-
         {/* Food Diary Tab */}
         <Tabs.Screen
-          name="FoodDiary"
+          name="Diet"
           options={{
             tabBarIcon: ({ focused }) => (
               <AnimatedTabIcon
@@ -153,7 +155,24 @@ export default function Layout() {
             ),
           }}
         />
+
+        {/* Profile Tab */}
+        <Tabs.Screen
+          name="Profile"
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <AnimatedTabIcon
+                focused={focused}
+                activeSource={require('../assets/bottomBar/Bold/User.png')}
+                inactiveSource={require('../assets/bottomBar/Light/User.png')}
+                activeScale={1.15}
+              />
+            ),
+          }}
+        />
+
       </Tabs>
+
 
       {/* Modal Overlay */}
       <Modal
@@ -162,7 +181,8 @@ export default function Layout() {
         animationType="none"
         onRequestClose={closeOverlay}
       >
-        <Animated.View style={[styles.modalBackground, { opacity: fadeAnimation }]}>
+        <Animated.View style={[styles.modalBackground, { opacity: fadeAnimation }]}
+        >
           <Animated.View
             style={[
               styles.modalContainer,
@@ -171,7 +191,7 @@ export default function Layout() {
               },
             ]}
           >
-            <Text style={{ fontSize: 35, fontWeight: "bold", color:"#b85317" }}>Add a meal:</Text>
+            <Text style={{ fontSize: 35, fontWeight: "bold", color: "#b85317" }}>Add a meal:</Text>
             <Pressable
               style={styles.modalButton}
               onPress={() => {
@@ -180,7 +200,7 @@ export default function Layout() {
               }}
             >
               <Text style={styles.buttonText}>Breakfast</Text>
-              <Image source={require('../assets/bottomBar/Light/sunrise.png')} style={{ width: 35, height: 35 }} />
+              <Image source={require('../assets/bottomBar/Light/sunrise.png')} style={{ width: 30, height: 30 }} />
             </Pressable>
             <View style={{ flexDirection: 'row', gap: 20 }}>
               <Pressable
@@ -191,7 +211,7 @@ export default function Layout() {
                 }}
               >
                 <Text style={styles.buttonText}>Lunch</Text>
-                <Image source={require('../assets/bottomBar/Light/sun.png')} style={{ width: 35, height: 35 }} />
+                <Image source={require('../assets/bottomBar/Light/sun.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
               <Pressable
                 style={styles.modalButton}
@@ -201,7 +221,7 @@ export default function Layout() {
                 }}
               >
                 <Text style={styles.buttonText}>Dinner</Text>
-                <Image source={require('../assets/bottomBar/Light/sunset.png')} style={{ width: 35, height: 35 }} />
+                <Image source={require('../assets/bottomBar/Light/sunset.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
             </View>
             <Pressable style={styles.closeButton} onPress={closeOverlay}>
@@ -216,9 +236,9 @@ export default function Layout() {
 
 const styles = StyleSheet.create({
   plusImage: {
-    width: 60,
-    height: 60,
-    marginBottom: 20,
+    width: 70,
+    height: 70,
+    marginBottom: 10,
   },
   modalBackground: {
     flex: 1,
@@ -254,12 +274,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 10,
     shadowColor: 'rgba(149, 157, 165, 0.2)',
-    shadowOffset: { 
-      width: 0, 
-      height: 8 
+    shadowOffset: {
+      width: 0,
+      height: 8
     },
     shadowRadius: 24,
-    shadowOpacity: 1, 
+    shadowOpacity: 1,
     elevation: 8, // For Android
   },
   buttonText: {
