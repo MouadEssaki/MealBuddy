@@ -191,7 +191,7 @@ export default function Layout() {
               },
             ]}
           >
-            <Text style={{ fontSize: 35, fontWeight: "bold", color: "#b85317" }}>Add a meal:</Text>
+            <Text style={{ fontSize: 30, fontWeight: "bold", color: "#b85317" }}>Add a meal:</Text>
             <Pressable
               style={styles.modalButton}
               onPress={() => {
