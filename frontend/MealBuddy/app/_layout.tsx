@@ -14,12 +14,22 @@ export default function Layout() {
           ),
         }}
       />
-      
+
       {/* About Tab */}
       <Tabs.Screen
         name="Recipes"
         options={{
           title: 'Recipes',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="information-circle" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="FoodDiary"
+        options={{
+          title: 'Food Diary',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="information-circle" size={size} color={color} />
           ),
