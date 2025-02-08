@@ -1,5 +1,6 @@
 from flask import Flask
 import pymongo
+from urllib.parse import quote_plus  # Add this to encode the password
 
 from Users.UsersCrud import users_bp
 from MealLogs.MealLogsCrud import meal_logs_bp
@@ -8,16 +9,26 @@ from MealPlans.MealPlansCrud import meal_plans_bp
 from Recipes.RecipesCrud import recipes_bp
 from Foods.FoodsCrud import foods_bp
 
-
-
-
 def create_app():
     # Initialize Flask app
     app = Flask(__name__)
 
-    # Configure MongoDB
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
-    app.config['db'] = client['MealBuddyDb']  # Attach database to app
+    # MongoDB username and password
+    username = "mahmouddabachi2004"
+    password = "mahmoud2004@password"  # Replace with your actual password, if it has special characters
+
+    # URL-encode the password
+    encoded_password = quote_plus(password)
+
+    # MongoDB connection string with URL-encoded password
+    mongo_uri = f"mongodb+srv://{username}:{encoded_password}@cluster0.zwzvx.mongodb.net/?retryWrites=true&w=majority"
+
+    # Connect to MongoDB Atlas
+    client = pymongo.MongoClient(mongo_uri)
+
+    # Specify the database name explicitly
+    db = client["MealBuddyDb"]  # Replace with your actual database name
+    app.config['db'] = db
 
     # Register Blueprints
     app.register_blueprint(users_bp)
@@ -27,10 +38,8 @@ def create_app():
     app.register_blueprint(recipes_bp)
     app.register_blueprint(foods_bp)
 
-
-
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=5000)
+    app.run(port=5000)
