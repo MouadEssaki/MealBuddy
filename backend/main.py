@@ -15,7 +15,7 @@ def create_app():
 
     # MongoDB username and password
     username = "mahmouddabachi2004"
-    password = "mahmoud2004@password"  # Replace with your actual password, if it has special characters
+    password = "mahmoud2004@"  # Replace with your actual password, if it has special characters
 
     # URL-encode the password
     encoded_password = quote_plus(password)

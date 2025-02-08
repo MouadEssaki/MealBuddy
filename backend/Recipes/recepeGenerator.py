@@ -4,11 +4,26 @@ from bson import ObjectId
 import json
 import datetime
 import re
+from urllib.parse import quote_plus
 
 # Configuration des clients
 api_key = "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"
 groq_client = Groq(api_key=api_key)
-mongo_client = MongoClient("mongodb://localhost:27017/")
+
+# MongoDB Atlas username and password
+username = "mahmouddabachi2004"
+password = "mahmoud2004@"  # Replace with your actual password, if it has special characters
+
+# URL-encode the password
+encoded_password = quote_plus(password)
+
+# MongoDB connection string with URL-encoded password
+mongo_uri = f"mongodb+srv://{username}:{encoded_password}@cluster0.zwzvx.mongodb.net/?retryWrites=true&w=majority"
+
+# Connect to MongoDB Atlas
+mongo_client = MongoClient(mongo_uri)
+
+# Specify the database name explicitly
 db = mongo_client["MealBuddyDb"]
 
 def generate_and_save_recipe(user_id, mandatory_ingredients, theme):
