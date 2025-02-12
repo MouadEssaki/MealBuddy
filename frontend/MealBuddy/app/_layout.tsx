@@ -89,7 +89,7 @@ export default function Layout() {
       <Tabs screenOptions={{ tabBarShowLabel: false,headerShown: false }}>
         {/* Home Tab */}
         <Tabs.Screen
-          name="index"
+          name="(home)"
           options={{
             tabBarIcon: ({ focused }) => (
               <AnimatedTabIcon

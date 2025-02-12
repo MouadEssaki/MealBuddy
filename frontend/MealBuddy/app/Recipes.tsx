@@ -5,6 +5,7 @@ import { ApplicationProvider, Layout } from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
 import { customTheme } from './customTheme';
 import { TextInput } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function Recipes() {
@@ -178,112 +179,114 @@ export default function Recipes() {
 
 
     return (
-        <ApplicationProvider {...eva} theme={customTheme}>
-            <Layout style={{ flex: 1, backgroundColor: customTheme.fond, marginTop: 50 }}>
-                <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
-                    {/* TextInput pour la recherche */}
-                    <Input
-                        accessoryLeft={SearchIcon}
-                        style={{
-                            height: 60,
-                            width: '90%',
-                            borderRadius: 30,
-                            paddingLeft: 20,
-                            marginBottom: 20,
-                            backgroundColor: "#FFFFFF",
-                            borderColor: 'transparent',
-                            fontSize: 16,
-                            // Shadow properties
-                            shadowColor: "#000",
-                            shadowOffset: {
-                                width: 0,
-                                height: 2,
-                            },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
-                            elevation: 3, // for Android
-                        }}
-                        textStyle={{
-                            color: '#333333',
-                        }}
-                        placeholder="Search for a recipe"
-                        placeholderTextColor="#999999"
-                    />
+        <SafeAreaView style={{ flex: 1 }}>
+            <ApplicationProvider {...eva} theme={customTheme}>
+                <Layout style={{ flex: 1, backgroundColor: customTheme.fond }}>
+                    <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
+                        {/* TextInput pour la recherche */}
+                        <Input
+                            accessoryLeft={SearchIcon}
+                            style={{
+                                height: 60,
+                                width: '90%',
+                                borderRadius: 30,
+                                paddingLeft: 20,
+                                marginBottom: 20,
+                                backgroundColor: "#FFFFFF",
+                                borderColor: 'transparent',
+                                fontSize: 16,
+                                // Shadow properties
+                                shadowColor: "#000",
+                                shadowOffset: {
+                                    width: 0,
+                                    height: 2,
+                                },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+                                elevation: 3, // for Android
+                            }}
+                            textStyle={{
+                                color: '#333333',
+                            }}
+                            placeholder="Search for a recipe"
+                            placeholderTextColor="#999999"
+                        />
 
 
-                    {/* ScrollView pour afficher la liste des recettes */}
-                    <ScrollView style={{ width: '100%' }}>
-                        {recipes.map((recipe) => (
-                            <View key={recipe.id} style={{
-                                marginRight: 20,
-                                marginLeft: 20,
-                                marginBottom: 30,
-                                backgroundColor: 'transparent', // This is important
-                            }}>
-                                <View style={{
-                                    backgroundColor: "#FFF4E4",
-                                    borderRadius: 10,
-                                    // iOS shadow properties
-                                    shadowColor: "#636363",
-                                    shadowOffset: {
-                                        width: 0,
-                                        height: 2,
-                                    },
-                                    shadowOpacity: 0.2,
-                                    shadowRadius: 8,
-                                    // Android shadow property
-                                    elevation: 5,
+                        {/* ScrollView pour afficher la liste des recettes */}
+                        <ScrollView style={{ width: '100%' }}>
+                            {recipes.map((recipe) => (
+                                <View key={recipe.id} style={{
+                                    marginRight: 20,
+                                    marginLeft: 20,
+                                    marginBottom: 30,
+                                    backgroundColor: 'transparent', // This is important
                                 }}>
-                                    <Image
-                                        source={{
-                                            uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(recipe.name)}`,
-                                        }}
-                                        style={{
-                                            width: '100%',
-                                            height: 200,
-                                            borderTopLeftRadius: 10,
-                                            borderTopRightRadius: 10,
-                                        }}
-                                        resizeMode="cover"
-                                    />
-                                    <View style={{ padding: 10 }}>
-                                        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
-                                            <ClockIcon style={{ width: 16, height: 16 }} />
-                                            <Text style={{ marginLeft: 5, fontSize: 12 }}>{recipe.time}</Text>
-                                            <PersonIcon style={{ width: 16, height: 16, marginLeft: 10 }} />
-                                            <Text style={{ marginLeft: 5, fontSize: 12 }}>{recipe.servings} serve</Text>
-                                            <View style={{ flexDirection: "row", marginLeft: 'auto' }}>
-                                                {[...Array(5)].map((_, i) => (
-                                                    <StarIcon
-                                                        key={i}
-                                                        style={{
-                                                            width: 16,
-                                                            height: 16,
-                                                            marginRight: 3,
-                                                        }}
-                                                        fill={i < recipe.rating ? "#FFD700" : "#E0E0E0"}
-                                                    />
-                                                ))}
+                                    <View style={{
+                                        backgroundColor: "#FFF4E4",
+                                        borderRadius: 10,
+                                        // iOS shadow properties
+                                        shadowColor: "#636363",
+                                        shadowOffset: {
+                                            width: 0,
+                                            height: 2,
+                                        },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 8,
+                                        // Android shadow property
+                                        elevation: 5,
+                                    }}>
+                                        <Image
+                                            source={{
+                                                uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(recipe.name)}`,
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                height: 200,
+                                                borderTopLeftRadius: 10,
+                                                borderTopRightRadius: 10,
+                                            }}
+                                            resizeMode="cover"
+                                        />
+                                        <View style={{ padding: 10 }}>
+                                            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
+                                                <ClockIcon style={{ width: 16, height: 16 }} />
+                                                <Text style={{ marginLeft: 5, fontSize: 12 }}>{recipe.time}</Text>
+                                                <PersonIcon style={{ width: 16, height: 16, marginLeft: 10 }} />
+                                                <Text style={{ marginLeft: 5, fontSize: 12 }}>{recipe.servings} serve</Text>
+                                                <View style={{ flexDirection: "row", marginLeft: 'auto' }}>
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <StarIcon
+                                                            key={i}
+                                                            style={{
+                                                                width: 16,
+                                                                height: 16,
+                                                                marginRight: 3,
+                                                            }}
+                                                            fill={i < recipe.rating ? "#FFD700" : "#E0E0E0"}
+                                                        />
+                                                    ))}
 
 
+                                                </View>
                                             </View>
+
+                                            <Text category='h6' style={{ fontWeight: 'bold' }}>{recipe.name}</Text>
+                                            <Text appearance="hint">{recipe.description}</Text>
+                                            {/* Star Rating */}
+
                                         </View>
-
-                                        <Text category='h6' style={{ fontWeight: 'bold' }}>{recipe.name}</Text>
-                                        <Text appearance="hint">{recipe.description}</Text>
-                                        {/* Star Rating */}
-
                                     </View>
                                 </View>
-                            </View>
-                        ))}
-                    </ScrollView>
+                            ))}
+                        </ScrollView>
 
 
 
 
-                </View>
-            </Layout>
-        </ApplicationProvider>
+                    </View>
+                </Layout>
+            </ApplicationProvider>
+        </SafeAreaView>
     );
 }

@@ -4,6 +4,7 @@ import { ApplicationProvider, Layout, Text, Card, Button } from '@ui-kitten/comp
 import * as eva from '@eva-design/eva';
 import { customTheme } from './customTheme';
 import mealPlan from '../assets/mealPlanTest.js';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function MealCard({ mealName, mealData }) {
     const [expanded, setExpanded] = useState(false);
@@ -63,19 +64,21 @@ function DayCard({ day, meals }) {
 
 export default function MealPlanScreen() {
     return (
-        <ApplicationProvider {...eva} theme={customTheme} >
-            <Layout style={styles.container}>
-            <ScrollView contentContainerStyle={{ alignItems: "center" }} showsVerticalScrollIndicator={false}>
+        <SafeAreaView style={{ flex: 1 }}>
+            <ApplicationProvider {...eva} theme={customTheme} >
+                <Layout style={styles.container}>
+                    <ScrollView contentContainerStyle={{ alignItems: "center" }} showsVerticalScrollIndicator={false}>
 
-                <View style={styles.header}>
-                    <Text category='h5' style={styles.headerTitle}>Your 7-Day Meal Plan</Text>
-                </View>
-                    {Object.entries(mealPlan).map(([day, meals]) => (
-                        <DayCard key={day} day={day} meals={meals} />
-                    ))}
-                </ScrollView>
-            </Layout>
-        </ApplicationProvider>
+                        <View style={styles.header}>
+                            <Text category='h5' style={styles.headerTitle}>Your 7-Day Meal Plan</Text>
+                        </View>
+                        {Object.entries(mealPlan).map(([day, meals]) => (
+                            <DayCard key={day} day={day} meals={meals} />
+                        ))}
+                    </ScrollView>
+                </Layout>
+            </ApplicationProvider>
+        </SafeAreaView>
     );
 }
 
