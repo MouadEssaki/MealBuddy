@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 import pymongo
 from urllib.parse import quote_plus  # Add this to encode the password
 
@@ -8,6 +8,12 @@ from ShoppingLists.ShoppingListsCrud import shopping_lists_bp
 from MealPlans.MealPlansCrud import meal_plans_bp
 from Recipes.RecipesCrud import recipes_bp
 from Foods.FoodsCrud import foods_bp
+
+from Users.calculationCalorie import calculer_apport_calorique
+from Research.Research import search_food
+from Recipes.recepeGenerator import generate_and_save_recipe
+from MealPlans.test import generate_weekly_meal_plan
+
 
 def create_app():
     # Initialize Flask app
@@ -38,7 +44,20 @@ def create_app():
     app.register_blueprint(recipes_bp)
     app.register_blueprint(foods_bp)
 
+
+    #@app.route("/api/utils/calculerApportCal",methods=["POST"])
+    #def CalculerApportCal():
+    #    data = request.get_json()
+    #    #TODO validation des données
+
+    #    resultat = calculer_apport_calorique(data["sexe"],data["poids"],data["taille"],data["age"],data["activite"],data["objectif"]) #TODO naming etc (ag ou fr)
+    #    return jsonify({"message":f"Data succesfully recieved, resulting amount are: {resultat} calories", "cal":f"{resultat}"}), 200
+
     return app
+
+
+
+
 
 if __name__ == '__main__':
     app = create_app()
