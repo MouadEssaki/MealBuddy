@@ -1,8 +1,6 @@
 import React from 'react';
-import { MMKV } from 'react-native-mmkv';
-
-// Initialize MMKV storage
-const storage = new MMKV();
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import uuid from 'react-native-uuid';
 
 // Define the meal types.
 type MealType = 'Breakfast' | 'Lunch' | 'Dinner';
@@ -17,6 +15,17 @@ export interface MealPlan {
     };
 }
 
+// Helper function to format the date to "YYYY-MM-DD".
+const formatDate = (dateInput: string | Date): string => {
+    const date = new Date(dateInput);
+    console.log(dateInput);
+    if (isNaN(date.getTime())) {
+        throw new Error("Invalid date provided");
+    }
+    // Returns the date portion only.
+    return date.toISOString().split('T')[0];
+};
+
 // Returns a default meal plan for a given date.
 const getDefaultMealPlan = (date: string): MealPlan => ({
     date,
@@ -28,23 +37,23 @@ const getDefaultMealPlan = (date: string): MealPlan => ({
 });
 
 // Helper function to get the meal plan for a specific date from storage.
-export const getMealPlan = (date: string): MealPlan => {
-    const data = storage.getString(date);
-    if (data) {
-        try {
-            return JSON.parse(data) as MealPlan;
-        } catch (error) {
-            console.error('Failed to parse meal plan data:', error);
-            return getDefaultMealPlan(date);
-        }
+export const getMealPlan = async (date: string | Date): Promise<MealPlan> => {
+    const formattedDate = formatDate(date);
+    try {
+        const data = await AsyncStorage.getItem(formattedDate);
+        return data ? (JSON.parse(data) as MealPlan) : getDefaultMealPlan(formattedDate);
+    } catch (error) {
+        console.error('Failed to retrieve meal plan data:', error);
+        return getDefaultMealPlan(formattedDate);
     }
-    return getDefaultMealPlan(date);
 };
 
 // Helper function to save/update the meal plan in storage.
-export const saveMealPlan = (mealPlan: MealPlan): void => {
+export const saveMealPlan = async (mealPlan: MealPlan): Promise<void> => {
+    // Ensure the date stored is formatted correctly.
+    mealPlan.date = formatDate(mealPlan.date);
     try {
-        storage.set(mealPlan.date, JSON.stringify(mealPlan));
+        await AsyncStorage.setItem(mealPlan.date, JSON.stringify(mealPlan));
     } catch (error) {
         console.error('Failed to save meal plan data:', error);
     }
@@ -55,29 +64,33 @@ export const saveMealPlan = (mealPlan: MealPlan): void => {
  *
  * @param date - The date (e.g., "2025-02-12") used as the key in storage.
  * @param mealType - The meal type: 'Breakfast', 'Lunch', or 'Dinner'.
- * @param item - The meal item to add. This can be any structure. If an `id` property exists, it is used to check for duplicates.
+ * @param item - The meal item to add. If an `id` property doesn't exist, a new UUID is generated.
  */
-export const addMealItem = (
-    date: string,
+export const addMealItem = async (
+    date: string | Date,
     mealType: MealType,
     item: any
-): void => {
-    const mealPlan = getMealPlan(date);
+): Promise<void> => {
+    console.log("date: ");
 
-    // Optional: Avoid adding duplicates if an `id` property exists.
-    if (item && item.id) {
-        const exists = mealPlan.meal[mealType].some((mealItem) => mealItem.id === item.id);
-        if (exists) {
-            console.warn(
-                `Meal item with id "${item.id}" already exists in ${mealType} for date ${date}.`
-            );
-            return;
-        }
+    console.log(mealType);
+    const formattedDate = formatDate(date);
+    const mealPlan = await getMealPlan(formattedDate);
+
+    if (!item.id) {
+        item.id = uuid.v4();
     }
 
-    // Add the new item to the corresponding meal array.
+    const exists = mealPlan.meal[mealType].some((mealItem) => mealItem.id === item.id);
+    if (exists) {
+        console.warn(
+            `Meal item with id "${item.id}" already exists in ${mealType} for date ${formattedDate}.`
+        );
+        return;
+    }
+
     mealPlan.meal[mealType].push(item);
-    saveMealPlan(mealPlan);
+    await saveMealPlan(mealPlan);
 };
 
 /**
@@ -87,16 +100,17 @@ export const addMealItem = (
  * @param mealType - The meal type: 'Breakfast', 'Lunch', or 'Dinner'.
  * @param itemId - The unique id of the meal item to remove.
  */
-export const deleteMealItem = (
-    date: string,
+export const deleteMealItem = async (
+    date: string | Date,
     mealType: MealType,
     itemId: string
-): void => {
-    const mealPlan = getMealPlan(date);
+): Promise<void> => {
+    const formattedDate = formatDate(date);
+    const mealPlan = await getMealPlan(formattedDate);
 
-    // Remove any item whose id matches the provided itemId.
     mealPlan.meal[mealType] = mealPlan.meal[mealType].filter(
         (item) => item.id !== itemId
     );
-    saveMealPlan(mealPlan);
+
+    await saveMealPlan(mealPlan);
 };
