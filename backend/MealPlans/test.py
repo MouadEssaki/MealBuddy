@@ -127,4 +127,4 @@ def calculer_apport_calorique(sexe: str, poids: float, taille: float, age: int, 
 #calories = calculer_apport_calorique("homme", 70, 175, 25, "modéré", "prise")
 #print(f"Apport calorique recommandé : {calories:.0f} kcal/jour")
 
-print(generate_weekly_meal_plan("679bc2f59331b387d24f2811","Homme",70,168,19,"sédentaire","perte","vegan, keto, bio"))
+#print(generate_weekly_meal_plan("679bc2f59331b387d24f2811","Homme",70,168,19,"sédentaire","perte","vegan, keto, bio"))

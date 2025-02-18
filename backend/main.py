@@ -9,13 +9,15 @@ from MealPlans.MealPlansCrud import meal_plans_bp
 from Recipes.RecipesCrud import recipes_bp
 from Foods.FoodsCrud import foods_bp
 
-from Users.calculationCalorie import calculer_apport_calorique
+from MealPlans.test import calculer_apport_calorique  
 from Research.Research import search_food
 from Recipes.recepeGenerator import generate_and_save_recipe
 from MealPlans.test import generate_weekly_meal_plan
-
+# modif des fichiers pour aucune e3execution car sinon serveur mort
 
 def create_app():
+
+    print("entry point reached")
     # Initialize Flask app
     app = Flask(__name__)
 
@@ -29,12 +31,18 @@ def create_app():
     # MongoDB connection string with URL-encoded password
     mongo_uri = f"mongodb+srv://{username}:{encoded_password}@cluster0.zwzvx.mongodb.net/?retryWrites=true&w=majority"
 
-    # Connect to MongoDB Atlas
-    client = pymongo.MongoClient(mongo_uri)
+    try:
+        # Connect to MongoDB Atlas
+        client = pymongo.MongoClient(mongo_uri)
+        # Specify the database name explicitly
+        db = client["MealBuddyDb"]  # Replace with your actual database name
+        app.config['db'] = db
+        print("✅ Successfully connected to MongoDB")
+    except Exception as e:
+        print(f"❌ MongoDB connection failed: {str(e)}")
+        raise
 
-    # Specify the database name explicitly
-    db = client["MealBuddyDb"]  # Replace with your actual database name
-    app.config['db'] = db
+    
 
     # Register Blueprints
     app.register_blueprint(users_bp)
@@ -45,20 +53,33 @@ def create_app():
     app.register_blueprint(foods_bp)
 
 
-    #@app.route("/api/utils/calculerApportCal",methods=["POST"])
-    #def CalculerApportCal():
-    #    data = request.get_json()
-    #    #TODO validation des données
-
-    #    resultat = calculer_apport_calorique(data["sexe"],data["poids"],data["taille"],data["age"],data["activite"],data["objectif"]) #TODO naming etc (ag ou fr)
-    #    return jsonify({"message":f"Data succesfully recieved, resulting amount are: {resultat} calories", "cal":f"{resultat}"}), 200
-
+   
     return app
 
 
 
+# deplacé ici pcq azure arrive pas a atteindre et possiblement pour les routes fonctionnelles.
+app = create_app()
+
+@app.route("/api/utils/calculerApportCal",methods=["POST"])
+def CalculerApportCal():
+    data = request.get_json()
+    #TODO validation des données
+
+    resultat = calculer_apport_calorique(data["sexe"],data["poids"],data["taille"],data["age"],data["activite"],data["objectif"]) #TODO naming etc (ag ou fr)
+    return jsonify({"message":f"Data succesfully recieved, resulting amount are: {resultat} calories", "cal":f"{resultat}"}), 200
+
+@app.route("/api/utils/search_food",methods=["POST"])
+def SearchFood():
+    data = request.get_json()
+    #TODO validation des données
+
+    resultat = search_food(data["search_term"])
+    return jsonify({"message":f"Data succesfully recieved","results":f"{resultat["results"]}"}), 200
+
+#etc
+
 
 
 if __name__ == '__main__':
-    app = create_app()
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=8000) #rm du port car azure choisit    host='0.0.0.0', port=8000
