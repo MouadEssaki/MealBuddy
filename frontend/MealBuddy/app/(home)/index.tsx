@@ -298,11 +298,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF4E4',
     padding: 20,
     borderRadius: 30,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 6,
+
   },
   dateNavigation: {
     flexDirection: 'row',

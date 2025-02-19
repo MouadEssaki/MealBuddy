@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
-import { getMealPlan } from '../../database/personnalData';
+import { getMealPlan, deleteMealItem } from '../../database/personnalData'; // Import deleteMealItem
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 
@@ -35,8 +35,17 @@ export default function MealDetails() {
         navigation.navigate('AddMeal', { mealType, date });
     };
 
+    const handleDelete = async (itemId: string) => {
+        try {
+            await deleteMealItem(date, mealType, itemId);
+            fetchMealPlan(); // Refresh the meal plan after deletion
+        } catch (error) {
+            console.error('Failed to delete meal item:', error);
+        }
+    };
+
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center' }}>
+        <SafeAreaView style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
             {loading && <Text>Loading...</Text>}
             {error && <Text style={{ color: 'red' }}>{error}</Text>}
             {!loading && !error && (
@@ -46,11 +55,14 @@ export default function MealDetails() {
                         <Text style={styles.subtitle}>{format(new Date(date), 'dd MMMM yyyy')}</Text>
                     </View>
 
-                    <View style={{ ...styles.boxCard, minHeight: 500, justifyContent: meal.length > 0 ? 'flex-start' : 'center' }}>
+                    <View style={{ ...styles.boxCard, minHeight: 540, justifyContent: meal.length > 0 ? 'flex-start' : 'center' }}>
                         {meal.length > 0 ? (
                             meal.map((item, index) => (
                                 <View key={index} style={styles.mealItem}>
-                                    <Text>{item.name}</Text>
+                                    <Text style={styles.mealText}>{item.name}</Text>
+                                    <TouchableOpacity onPress={() => handleDelete(item.id)}>
+                                        <Text style={styles.deleteText}>Delete</Text>
+                                    </TouchableOpacity>
                                 </View>
                             ))
                         ) : (
@@ -94,17 +106,34 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF4E4',
         padding: 20,
         borderRadius: 30,
-        shadowColor: "#000000",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.12,
-        shadowRadius: 6,
-        elevation: 6,
+        height: "95%",
+    },
+    deleteText: {
+        color: 'white',
+        fontSize: 16,
+        backgroundColor: 'red',
+        padding: 5,
+        borderRadius: 5,
+        fontWeight: 'bold',
     },
     mealItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 5,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        backgroundColor: '#68AA64',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        marginVertical: 5,
+    },
+    mealText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     addButton: {
         backgroundColor: '#68AA64',

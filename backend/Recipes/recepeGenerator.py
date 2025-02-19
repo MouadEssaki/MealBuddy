@@ -252,10 +252,10 @@ def generate_and_save_recipe(user_id, mandatory_ingredients, theme):
         return {"status": "error", "message": str(e)}
 
 # Exemple d'utilisation
-#result = generate_and_save_recipe(
-#    user_id="507f191e810c19729de860ea",
-#    mandatory_ingredients=["ananas","apple","banana","soy milk"],
-#    theme="baking"
-#)
+result = generate_and_save_recipe(
+   user_id="507f191e810c19729de860ea",
+   mandatory_ingredients=["ananas","apple","banana","soy milk"],
+   theme="baking"
+)
 
-#print(result)
+print(result)

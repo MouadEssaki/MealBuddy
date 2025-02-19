@@ -4,12 +4,28 @@ from bson import ObjectId
 import json
 import datetime
 import re
+from urllib.parse import quote_plus
 
 # Configuration des clients
 api_key = "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"
 groq_client = Groq(api_key=api_key)
-mongo_client = MongoClient("mongodb://localhost:27017/")
+
+# MongoDB Atlas username and password
+username = "mahmouddabachi2004"
+password = "mahmoud2004@"  # Replace with your actual password, if it has special characters
+
+# URL-encode the password
+encoded_password = quote_plus(password)
+
+# MongoDB connection string with URL-encoded password
+mongo_uri = f"mongodb+srv://{username}:{encoded_password}@cluster0.zwzvx.mongodb.net/?retryWrites=true&w=majority"
+
+# Connect to MongoDB Atlas
+mongo_client = MongoClient(mongo_uri)
+
+# Specify the database name explicitly
 db = mongo_client["MealBuddyDb"]
+
 
 def search_food(search_term):
     # Define the Groq prompt for searching foods
@@ -190,5 +206,5 @@ def search_food(search_term):
         return {"status": "error", "message": str(e)}
 
 # Example usage of the search function
-#result = search_food("milk")
-#print(result)
+result = search_food("eggs")
+print(result)
