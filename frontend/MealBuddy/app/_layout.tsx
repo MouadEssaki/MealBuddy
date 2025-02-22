@@ -122,8 +122,9 @@ export default function Layout() {
               }}
             />
 
+            {/* Recipes Tab */}
             <Tabs.Screen
-              name="Recipes"
+              name="(recipes)"
               options={{
                 tabBarIcon: ({ focused }) => (
                   <AnimatedTabIcon
@@ -157,20 +158,7 @@ export default function Layout() {
               }}
             />
 
-            {/* Recipes Tab */}
-            <Tabs.Screen
-              name="(recipes)"
-              options={{
-                tabBarIcon: ({ focused }) => (
-                  <AnimatedTabIcon
-                    focused={focused}
-                    activeSource={require('../assets/bottomBar/Bold/Recipes.png')}
-                    inactiveSource={require('../assets/bottomBar/Light/Recipes.png')}
-                    activeScale={1.15}
-                  />
-                ),
-              }}
-            />
+
             <Tabs.Screen
               name="Diet"
               options={{
