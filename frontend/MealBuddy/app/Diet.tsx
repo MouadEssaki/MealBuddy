@@ -4,6 +4,7 @@ import { ApplicationProvider, Layout, Text, Card, Button } from '@ui-kitten/comp
 import * as eva from '@eva-design/eva';
 import { customTheme } from './customTheme.js';
 import mealPlan from '../assets/mealPlanTest.js';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function DietV2_test1({ mealData, onClose }) {
   return (
@@ -67,67 +68,69 @@ export default function MealPlanScreen() {
   }, { calories: 0, proteins: 0, carbs: 0, fats: 0 });
 
   return (
-    <ApplicationProvider {...eva} theme={customTheme}>
-      <Layout style={styles.container}>
-        <View style={styles.header}>
-          <Text category='h5' style={styles.headerTitle}>Your 7-Day Meal Plan</Text>
-        </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ApplicationProvider {...eva} theme={customTheme}>
+        <Layout style={styles.container}>
+          <View style={styles.header}>
+            <Text category='h5' style={styles.headerTitle}>Your 7-Day Meal Plan</Text>
+          </View>
 
-        {/* Day Selector */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.daysContainer}
-        >
-          {days.map(day => (
-            <TouchableOpacity
-              key={day}
-              style={[styles.dayButton, selectedDay === day && styles.selectedDayButton]}
-              onPress={() => {
-                setSelectedDay(day);
-                setSelectedMeal(null);
-              }}
-            >
-              <Text style={selectedDay === day ? styles.selectedDayText : styles.dayText}>
-                {day.slice(0, 3)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+          {/* Day Selector */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.daysContainer}
+          >
+            {days.map(day => (
+              <TouchableOpacity
+                key={day}
+                style={[styles.dayButton, selectedDay === day && styles.selectedDayButton]}
+                onPress={() => {
+                  setSelectedDay(day);
+                  setSelectedMeal(null);
+                }}
+              >
+                <Text style={selectedDay === day ? styles.selectedDayText : styles.dayText}>
+                  {day.slice(0, 3)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-        {/* Meal Cards */}
-        <ScrollView contentContainerStyle={styles.mealsContainer}>
-          {Object.entries(mealPlan[selectedDay]).map(([mealName, mealData]) => (
-            <MealCard
-              key={mealName}
-              mealName={mealName}
-              mealData={mealData}
-              isActive={selectedMeal?.title === mealData.title}
-              onPress={() => setSelectedMeal(selectedMeal?.title === mealData.title ? null : mealData)}
-            />
-          ))}
+          {/* Meal Cards */}
+          <ScrollView contentContainerStyle={styles.mealsContainer}>
+            {Object.entries(mealPlan[selectedDay]).map(([mealName, mealData]) => (
+              <MealCard
+                key={mealName}
+                mealName={mealName}
+                mealData={mealData}
+                isActive={selectedMeal?.title === mealData.title}
+                onPress={() => setSelectedMeal(selectedMeal?.title === mealData.title ? null : mealData)}
+              />
+            ))}
 
-          <Card style={styles.macrosCard}>
-            <Text category='s2' style={styles.macrosTitle}>Total Macros for {selectedDay}:</Text>
-            <View style={styles.macrosGrid}>
-              <Text style={styles.macroText}>Calories: {totalMacros.calories}</Text>
-              <Text style={styles.macroText}>Protein: {totalMacros.proteins}g</Text>
-              <Text style={styles.macroText}>Carbs: {totalMacros.carbs}g</Text>
-              <Text style={styles.macroText}>Fats: {totalMacros.fats}g</Text>
-            </View>
-          </Card>
-        </ScrollView>
+            <Card style={styles.macrosCard}>
+              <Text category='s2' style={styles.macrosTitle}>Total Macros for {selectedDay}:</Text>
+              <View style={styles.macrosGrid}>
+                <Text style={styles.macroText}>Calories: {totalMacros.calories}</Text>
+                <Text style={styles.macroText}>Protein: {totalMacros.proteins}g</Text>
+                <Text style={styles.macroText}>Carbs: {totalMacros.carbs}g</Text>
+                <Text style={styles.macroText}>Fats: {totalMacros.fats}g</Text>
+              </View>
+            </Card>
+          </ScrollView>
           {/* possible aussi de bouger macros ici, j'aimer pas le fait que le plus pouvait être au dessus tho*/}
 
 
-        {/* Meal Details */}
-        {selectedMeal && (
-          <View style={styles.detailsContainer}>
-            <DietV2_test1 mealData={selectedMeal} onClose={() => setSelectedMeal(null)} />
-          </View>
-        )}
-      </Layout>
-    </ApplicationProvider>
+          {/* Meal Details */}
+          {selectedMeal && (
+            <View style={styles.detailsContainer}>
+              <DietV2_test1 mealData={selectedMeal} onClose={() => setSelectedMeal(null)} />
+            </View>
+          )}
+        </Layout>
+      </ApplicationProvider>
+    </SafeAreaView>
   );
 }
 

@@ -106,7 +106,7 @@ export default function Layout() {
 
         {/* Recipes Tab */}
         <Tabs.Screen
-          name="Recipes"
+          name="(recipes)"
           options={{
             tabBarIcon: ({ focused }) => (
               <AnimatedTabIcon
