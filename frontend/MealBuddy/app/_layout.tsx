@@ -1,17 +1,10 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from "@expo/vector-icons"; // Imported Ionicons for tab icons
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Animated,
-  Modal,
-  View,
-  Text,
-  Pressable,
-  Image,
-  StyleSheet,
-} from 'react-native';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Animated, Modal, View, Text, Pressable, Image, StyleSheet } from 'react-native';
+import LoginRegister from '../composants/LoginRegister';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
-// Example animated icon for other tabs.
 const AnimatedTabIcon = ({
   focused,
   activeSource,
@@ -44,9 +37,23 @@ const AnimatedTabIcon = ({
 };
 
 export default function Layout() {
+  const [authToken, setAuthToken] = useState(null);
   const [overlayVisible, setOverlayVisible] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const slideAnimation = useRef(new Animated.Value(300)).current;
   const fadeAnimation = useRef(new Animated.Value(0)).current;
+
+
+
+  useEffect(() => {
+    const getAuthToken = async () => {
+      const token = await AsyncStorage.getItem('authToken');
+      if (token) {
+        setAuthToken(token);
+      }
+    };
+    getAuthToken();
+  }, []);
 
   const slideIn = () => {
     Animated.parallel([
@@ -60,7 +67,7 @@ export default function Layout() {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
   };
 
@@ -84,105 +91,110 @@ export default function Layout() {
     slideOut();
   };
 
+  const handleAuthSuccess = async (token) => {
+    setAuthToken(token);
+    await AsyncStorage.setItem('authToken', token); // Use AsyncStorage
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('authToken'); // Use AsyncStorage
+    setAuthToken(null);
+  };
+
   return (
     <>
-      <Tabs screenOptions={{ tabBarShowLabel: false,headerShown: false }}>
-        {/* Home Tab */}
-        <Tabs.Screen
-          name="(home)"
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                activeSource={require('../assets/bottomBar/Bold/Home.png')}
-                inactiveSource={require('../assets/bottomBar/Light/Home.png')}
-                activeScale={1.15}
-              />
-            ),
-          }}
-        />
+      <View style={{ minHeight: '100%', backgroundColor: '#F0F0F0' }}>
+        {!authToken ? (
+          <LoginRegister onAuthSuccess={handleAuthSuccess} />
+        ) : (
+          <Tabs screenOptions={{ tabBarShowLabel: false, headerShown: false }}>
+            <Tabs.Screen
+              name="(home)"
+              options={{
+                tabBarIcon: ({ focused }) => (
+                  <AnimatedTabIcon
+                    focused={focused}
+                    activeSource={require('../assets/bottomBar/Bold/Home.png')}
+                    inactiveSource={require('../assets/bottomBar/Light/Home.png')}
+                    activeScale={1.15}
+                  />
+                ),
+              }}
+            />
 
+            <Tabs.Screen
+              name="Recipes"
+              options={{
+                tabBarIcon: ({ focused }) => (
+                  <AnimatedTabIcon
+                    focused={focused}
+                    activeSource={require('../assets/bottomBar/Bold/Recipes.png')}
+                    inactiveSource={require('../assets/bottomBar/Light/Recipes.png')}
+                    activeScale={1.15}
+                  />
+                ),
+              }}
+            />
 
+            <Tabs.Screen
+              name="Plus"
+              options={{
+                tabBarIcon: ({ focused }) => (
+                  <Pressable onPress={openOverlay}>
+                    <Image
+                      source={require('../assets/bottomBar/Add.png')}
+                      style={styles.plusImage}
+                      resizeMode="contain"
+                    />
+                  </Pressable>
+                ),
+              }}
+              listeners={{
+                tabPress: (e) => {
+                  e.preventDefault();
+                  openOverlay();
+                },
+              }}
+            />
 
-        {/* Recipes Tab */}
-        <Tabs.Screen
-          name="Recipes"
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                activeSource={require('../assets/bottomBar/Bold/Recipes.png')}
-                inactiveSource={require('../assets/bottomBar/Light/Recipes.png')}
-                activeScale={1.15}
-              />
-            ),
-          }}
-        />
+            <Tabs.Screen
+              name="Diet"
+              options={{
+                tabBarIcon: ({ focused }) => (
+                  <AnimatedTabIcon
+                    focused={focused}
+                    activeSource={require('../assets/bottomBar/Bold/Diary.png')}
+                    inactiveSource={require('../assets/bottomBar/Light/Diary.png')}
+                    activeScale={1.15}
+                  />
+                ),
+              }}
+            />
 
-        {/* Plus Tab */}
-        <Tabs.Screen
-          name="Plus" // Dummy route; you should have a dummy file for it.
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <Pressable onPress={openOverlay}>
-                <Image
-                  source={require('../assets/bottomBar/Add.png')}
-                  style={styles.plusImage}
-                  resizeMode="contain"
-                />
-              </Pressable>
-            ),
-          }}
-          listeners={{
-            tabPress: (e) => {
-              e.preventDefault(); // Prevent navigation; only the overlay should open
-              openOverlay();
-            },
-          }}
-        />
+            <Tabs.Screen
+              name="Profile"
+              options={{
+                tabBarIcon: ({ focused }) => (
+                  <AnimatedTabIcon
+                    focused={focused}
+                    activeSource={require('../assets/bottomBar/Bold/User.png')}
+                    inactiveSource={require('../assets/bottomBar/Light/User.png')}
+                    activeScale={1.15}
+                  />
+                ),
+              }}
+            />
+          </Tabs>
+        )}
+      </View>
 
-        {/* Food Diary Tab */}
-        <Tabs.Screen
-          name="Diet"
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                activeSource={require('../assets/bottomBar/Bold/Diary.png')}
-                inactiveSource={require('../assets/bottomBar/Light/Diary.png')}
-                activeScale={1.15}
-              />
-            ),
-          }}
-        />
-
-        {/* Profile Tab */}
-        <Tabs.Screen
-          name="Profile"
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                activeSource={require('../assets/bottomBar/Bold/User.png')}
-                inactiveSource={require('../assets/bottomBar/Light/User.png')}
-                activeScale={1.15}
-              />
-            ),
-          }}
-        />
-
-      </Tabs>
-
-
-      {/* Modal Overlay */}
       <Modal
         visible={overlayVisible}
         transparent
         animationType="none"
         onRequestClose={closeOverlay}
       >
-        <Animated.View style={[styles.modalBackground, { opacity: fadeAnimation }]}
-        >
+        <Animated.View style={[styles.modalBackground, { opacity: fadeAnimation }]}>
           <Animated.View
             style={[
               styles.modalContainer,
@@ -191,7 +203,7 @@ export default function Layout() {
               },
             ]}
           >
-            <Text style={{ fontSize: 30, fontWeight: "bold", color: "#68AA64" }}>Add a meal:</Text>
+            <Text style={{ fontSize: 30, fontWeight: 'bold', color: '#68AA64' }}>Add a meal:</Text>
             <Pressable
               style={styles.modalButton}
               onPress={() => {
@@ -247,11 +259,11 @@ const styles = StyleSheet.create({
     shadowColor: 'rgba(0, 0, 0, 0.4)',
     shadowOffset: {
       width: 0,
-      height: 5
+      height: 5,
     },
     shadowRadius: 15,
     shadowOpacity: 0.35,
-    elevation: 5, // For Android
+    elevation: 5,
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
   modalContainer: {
@@ -276,11 +288,11 @@ const styles = StyleSheet.create({
     shadowColor: 'rgba(149, 157, 165, 0.2)',
     shadowOffset: {
       width: 0,
-      height: 8
+      height: 8,
     },
     shadowRadius: 24,
     shadowOpacity: 1,
-    elevation: 8, // For Android
+    elevation: 8,
   },
   buttonText: {
     fontSize: 16,
