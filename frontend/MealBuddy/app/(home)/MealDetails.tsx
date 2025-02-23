@@ -45,7 +45,7 @@ export default function MealDetails() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
+        <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
             {loading && <Text>Loading...</Text>}
             {error && <Text style={{ color: 'red' }}>{error}</Text>}
             {!loading && !error && (
@@ -55,7 +55,7 @@ export default function MealDetails() {
                         <Text style={styles.subtitle}>{format(new Date(date), 'dd MMMM yyyy')}</Text>
                     </View>
 
-                    <View style={{ ...styles.boxCard, minHeight: 540, justifyContent: meal.length > 0 ? 'flex-start' : 'center' }}>
+                    <View style={{ ...styles.boxCard, minHeight: 430, justifyContent: meal.length > 0 ? 'flex-start' : 'center' }}>
                         {meal.length > 0 ? (
                             meal.map((item, index) => (
                                 <View key={index} style={styles.mealItem}>
@@ -78,7 +78,7 @@ export default function MealDetails() {
                     </View>
                 </View>
             )}
-        </SafeAreaView>
+        </View>
     );
 }
 

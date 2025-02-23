@@ -48,6 +48,8 @@ export default function CreateRecipe() {
             <ScrollView contentContainerStyle={styles.scrollView}>
                 <Text style={styles.header}>Create Recipe</Text>
 
+
+                <Text>Recipe Title</Text>
                 <TextInput
                     style={styles.input}
                     placeholder='Recipe Title'
@@ -55,6 +57,7 @@ export default function CreateRecipe() {
                     onChangeText={setTitle}
                 />
 
+                <Text>Ingredients</Text>
                 <TextInput
                     style={styles.input}
                     placeholder='Ingredients (comma separated)'
@@ -62,6 +65,7 @@ export default function CreateRecipe() {
                     onChangeText={setIngredients}
                 />
 
+                <Text>Steps</Text>
                 <TextInput
                     style={styles.input}
                     placeholder='Steps (comma separated)'

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginForm = ({ onAuthSuccess }) => {
     const [email, setEmail] = useState('');
@@ -38,32 +39,34 @@ const LoginForm = ({ onAuthSuccess }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.heading}>Connexion</Text>
-            <View style={styles.form}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Entrez votre email"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    required
-                />
-                <Text style={styles.label}>Mot de passe</Text>
-                <TextInput
-                    style={styles.input}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Entrez votre mot de passe"
-                    secureTextEntry
-                    required
-                />
-                <Button title="Se connecter" onPress={handleLogin} />
-                {message && <Text style={styles.message}>{message}</Text>}
+        <SafeAreaView style={styles.container}>
+            <View style={styles.container}>
+                <Text style={styles.heading}>Connexion</Text>
+                <View style={styles.form}>
+                    <Text style={styles.label}>Email</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="Entrez votre email"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        required
+                    />
+                    <Text style={styles.label}>Mot de passe</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Entrez votre mot de passe"
+                        secureTextEntry
+                        required
+                    />
+                    <Button title="Se connecter" onPress={handleLogin} />
+                    {message && <Text style={styles.message}>{message}</Text>}
+                </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -169,16 +172,16 @@ const RegisterForm = ({ onAuthSuccess }) => {
                     secureTextEntry
                     required
                 />
-                
+
                 <Text style={styles.label}>Sélectionnez un avatar</Text>
                 <Button title="Choisir un avatar" onPress={handleAvatarSelect} />
                 {avatar && <Image source={{ uri: avatar }} style={styles.avatar} />}
-                
+
                 <Text style={styles.label}>Quel est votre objectif ?</Text>
                 <Button title="Perte de poids" onPress={() => setGoal('Perte de poids')} />
                 <Button title="Prise de poids" onPress={() => setGoal('Prise de poids')} />
                 <Button title="Maintien de poids" onPress={() => setGoal('Maintien de poids')} />
-                
+
                 <Text style={styles.label}>Sélectionnez vos préférences alimentaires</Text>
                 <TouchableOpacity onPress={() => setPreferences(prev => prev.includes('Végétarien') ? prev.filter(item => item !== 'Végétarien') : [...prev, 'Végétarien'])}>
                     <Text style={styles.buttonText}>Végétarien</Text>

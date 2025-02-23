@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, Image, Pressable, StyleSheet } from 'react-native';
 import { Input, Button, Icon, Text, Card } from '@ui-kitten/components';
 import { ApplicationProvider, Layout } from '@ui-kitten/components';
@@ -6,6 +6,7 @@ import * as eva from '@eva-design/eva';
 import { customTheme } from '../customTheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 
 
 export default function App() {
@@ -42,6 +43,20 @@ export default function App() {
         navigation.navigate('RecipesDetails', { recipe });
     };
 
+   const fetchRecipes = () => {
+        fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/recipes')
+            .then(response => response.json())
+            .then(data => {
+                setrecipesData(data);
+            });
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchRecipes();
+        }
+            , [searchQuery])
+    );
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -75,7 +90,7 @@ export default function App() {
                         />
 
                         <Button
-                            accessoryLeft={CreateIcon} 
+                            accessoryLeft={CreateIcon}
                             onPress={() => navigation.navigate('CreateRecipe')}
                             style={{
                                 marginBottom: 10,
