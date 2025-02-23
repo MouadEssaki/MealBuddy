@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, Image, TouchableOpacity, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { RadioButton, Checkbox } from 'react-native-paper';
 
+
+//TODO traduire en anglais mdr
 const LoginForm = ({ onAuthSuccess }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -79,6 +82,7 @@ const RegisterForm = ({ onAuthSuccess }) => {
     const [goal, setGoal] = useState('');
     const [preferences, setPreferences] = useState([]);
     const [message, setMessage] = useState('');
+    const [otherPreference, setOtherPreference] = useState('');
 
     const handleAvatarSelect = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -131,72 +135,99 @@ const RegisterForm = ({ onAuthSuccess }) => {
             setMessage('Une erreur est survenue.');
         }
     };
+    
+     const handlePreferenceChange = (preference) => {
+        setPreferences(prev => 
+            prev.includes(preference) 
+            ? prev.filter(item => item !== preference) 
+            : [...prev, preference]
+        );
+    };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.heading}>Inscription</Text>
-            <View style={styles.form}>
-                <Text style={styles.label}>Nom d'utilisateur</Text>
-                <TextInput
-                    style={styles.input}
-                    value={username}
-                    onChangeText={setUsername}
-                    placeholder="Entrez votre nom d'utilisateur"
-                    required
-                />
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Entrez votre email"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    required
-                />
-                <Text style={styles.label}>Mot de passe</Text>
-                <TextInput
-                    style={styles.input}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Entrez votre mot de passe"
-                    secureTextEntry
-                    required
-                />
-                <Text style={styles.label}>Confirmer le mot de passe</Text>
-                <TextInput
-                    style={styles.input}
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    placeholder="Confirmez votre mot de passe"
-                    secureTextEntry
-                    required
-                />
-
-                <Text style={styles.label}>Sélectionnez un avatar</Text>
-                <Button title="Choisir un avatar" onPress={handleAvatarSelect} />
-                {avatar && <Image source={{ uri: avatar }} style={styles.avatar} />}
-
-                <Text style={styles.label}>Quel est votre objectif ?</Text>
-                <Button title="Perte de poids" onPress={() => setGoal('Perte de poids')} />
-                <Button title="Prise de poids" onPress={() => setGoal('Prise de poids')} />
-                <Button title="Maintien de poids" onPress={() => setGoal('Maintien de poids')} />
-
-                <Text style={styles.label}>Sélectionnez vos préférences alimentaires</Text>
-                <TouchableOpacity onPress={() => setPreferences(prev => prev.includes('Végétarien') ? prev.filter(item => item !== 'Végétarien') : [...prev, 'Végétarien'])}>
-                    <Text style={styles.buttonText}>Végétarien</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setPreferences(prev => prev.includes('Allergie aux arachides') ? prev.filter(item => item !== 'Allergie aux arachides') : [...prev, 'Allergie aux arachides'])}>
-                    <Text style={styles.buttonText}>Allergie aux arachides</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setPreferences(prev => prev.includes('Vegan') ? prev.filter(item => item !== 'Vegan') : [...prev, 'Vegan'])}>
-                    <Text style={styles.buttonText}>Vegan</Text>
-                </TouchableOpacity>
-
-                <Button title="S'inscrire" onPress={handleRegister} />
-                {message && <Text style={styles.message}>{message}</Text>}
+        <ScrollView>
+            <View style={styles.container}>
+                <Text style={styles.heading}>Inscription</Text>
+                <View style={styles.form}>
+                    <Text style={styles.label}>Nom d'utilisateur</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={username}
+                        onChangeText={setUsername}
+                        placeholder="Entrez votre nom d'utilisateur"
+                    />
+                    <Text style={styles.label}>Email</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="Entrez votre email"
+                        keyboardType="email-address"
+                    />
+                    <Text style={styles.label}>Mot de passe</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Entrez votre mot de passe"
+                        secureTextEntry
+                    />
+                    <Text style={styles.label}>Confirmer le mot de passe</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        placeholder="Confirmez votre mot de passe"
+                        secureTextEntry
+                    />
+                    <Text style={styles.label}>Sélectionnez un avatar</Text>
+                    <Button title="Choisir un avatar" onPress={handleAvatarSelect} />
+                    {avatar && <Image source={{ uri: avatar }} style={styles.avatar} />}
+                    <Text style={styles.label}>Quel est votre objectif ?</Text>
+                    <RadioButton.Group
+                        onValueChange={value => setGoal(value)}
+                        value={goal}
+                    >
+                        <RadioButton.Item label="Perte de poids" value="Perte de poids" />
+                        <RadioButton.Item label="Prise de poids" value="Prise de poids" />
+                        <RadioButton.Item label="Maintien de poids" value="Maintien de poids" />
+                    </RadioButton.Group>
+                    <Text style={styles.label}>Sélectionnez vos préférences alimentaires</Text>
+                    <View style={styles.checkboxContainer}>
+                        <Checkbox.Item
+                            label="Végétarien"
+                            status={preferences.includes('Végétarien') ? 'checked' : 'unchecked'}
+                            onPress={() => handlePreferenceChange('Végétarien')}
+                        />
+                        <Checkbox.Item
+                            label="Allergie aux arachides"
+                            status={preferences.includes('Allergie aux arachides') ? 'checked' : 'unchecked'}
+                            onPress={() => handlePreferenceChange('Allergie aux arachides')}
+                        />
+                        <Checkbox.Item
+                            label="Vegan"
+                            status={preferences.includes('Vegan') ? 'checked' : 'unchecked'}
+                            onPress={() => handlePreferenceChange('Vegan')}
+                        />
+                        <Checkbox.Item
+                            label="Autres"
+                            status={preferences.includes('Autres') ? 'checked' : 'unchecked'}
+                            onPress={() => handlePreferenceChange('Autres')}
+                        />
+                        {preferences.includes('Autres') && (
+                            <TextInput
+                                style={styles.input}
+                                value={otherPreference}
+                                onChangeText={setOtherPreference}
+                                placeholder="Précisez votre préférence"
+                            />
+                        )}
+                    </View>
+                    <Button title="S'inscrire" onPress={handleRegister} />
+                    {message && <Text style={styles.message}>{message}</Text>}
+                </View>
             </View>
-        </View>
+        </ScrollView>
     );
 };
 
