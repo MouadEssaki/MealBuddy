@@ -206,5 +206,5 @@ def search_food(search_term):
         return {"status": "error", "message": str(e)}
 
 # Example usage of the search function
-result = search_food("eggs")
-print(result)
+#result = search_food("eggs")
+#print(result)

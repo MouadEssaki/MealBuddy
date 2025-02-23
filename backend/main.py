@@ -75,7 +75,7 @@ def SearchFood():
     #TODO validation des données
 
     resultat = search_food(data["search_term"])
-    return jsonify({"message":f"Data succesfully recieved","results":f"{resultat["results"]}"}), 200
+    return jsonify({"message":f"Data succesfully recieved","results":f"{resultat['results']}"}), 200
 
 #etc
 
