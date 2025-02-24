@@ -5,35 +5,21 @@ export default function HomeLayout() {
         <Stack>
             <Stack.Screen
                 name="index"
-                options={{ headerShown: false }}
+                options={{ headerShown: false,
+                    headerTitle: 'Home'
+                 }}
             />
             <Stack.Screen
                 name="MealDetails"
-                options={{
-                    headerShown: true,
-                    // This property removes the bottom border/shadow in React Navigation 6+
-                    headerShadowVisible: false,
-                    headerStyle: {
-                        // Also set these to ensure no elevation/shadow on Android
-                        elevation: 0,
-                        shadowColor: 'transparent',
-                        borderBottomWidth: 0,
-                        backgroundColor: '#fff', // or whatever your header color is
-                    },
-                }}
+                options={{ headerShown: true,
+                    headerTitle: ''
+                 }} // Hide header for MealDetails
             />
             <Stack.Screen
                 name="AddMeal"
-                options={{
-                    headerShown: true,
-                    headerShadowVisible: false,
-                    headerStyle: {
-                        elevation: 0,
-                        shadowColor: 'transparent',
-                        borderBottomWidth: 0,
-                        backgroundColor: '#fff',
-                    },
-                }}
+                options={{ headerShown: true,
+                    headerTitle: ''
+                 }} // Hide header for AddMeal
             />
         </Stack>
     );
