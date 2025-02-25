@@ -1,19 +1,43 @@
 import React, { useState } from 'react';
-import { ScrollView, SafeAreaView, StyleSheet, TextInput, Text, TouchableOpacity, Alert } from 'react-native';
+import { ScrollView, SafeAreaView, StyleSheet, TextInput, Text, TouchableOpacity, Alert, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function CreateRecipe() {
     const [title, setTitle] = useState('');
-    const [ingredients, setIngredients] = useState('');
-    const [steps, setSteps] = useState('');
+    const { recipeIngredients: rawRecipeIngredients } = useLocalSearchParams() as { recipeIngredients?: string[] };
+    const [steps, setSteps] = useState<string[]>([]);
+    const [stepInput, setStepInput] = useState('');
+    const navigation = useNavigation();
+
+    // Ensure recipeIngredients is always an array
+    const recipeIngredients = Array.isArray(rawRecipeIngredients) ? rawRecipeIngredients : [];
+
+    const handleAddStep = () => {
+        if (stepInput.trim()) {
+            setSteps([...steps, stepInput.trim()]);
+            setStepInput('');
+        }
+    };
+
+    const COLORS = {
+        vertClaire: '#68AA64',
+        vert: '#105F3B',
+        orange: '#E36820',
+        beige: '#FFF4E4',
+        white: '#FFFFFF',
+        background: '#F9F9F9'
+    };
 
     const handleCreateRecipe = async () => {
         const userId = "67b9086fcf91584cc206f897"; // Replace with the actual user ID
-        
-        const mandatoryIngredients = ingredients.split(',').map(ingredient => ingredient.trim());
+
         const recipeData = {
             title,
-            ingredients: mandatoryIngredients,
-            steps: steps.split(',').map(step => step.trim()),
+            recipeIngredients,
+            steps,
             user_id: userId,
         };
 
@@ -31,8 +55,7 @@ export default function CreateRecipe() {
                 Alert.alert('Success', `Recipe created with ID: ${result._id}`);
 
                 setTitle('');
-                setIngredients('');
-                setSteps('');
+                setSteps([]);
             } else {
                 const errorData = await response.json();
                 Alert.alert('Error', errorData.error || 'Failed to create recipe');
@@ -48,7 +71,6 @@ export default function CreateRecipe() {
             <ScrollView contentContainerStyle={styles.scrollView}>
                 <Text style={styles.header}>Create Recipe</Text>
 
-
                 <Text>Recipe Title</Text>
                 <TextInput
                     style={styles.input}
@@ -58,25 +80,47 @@ export default function CreateRecipe() {
                 />
 
                 <Text>Ingredients</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder='Ingredients (comma separated)'
-                    value={ingredients}
-                    onChangeText={setIngredients}
-                />
+                {recipeIngredients.map((ingredient, index) => (
+                    <Text key={index} style={styles.listItem}>{ingredient}</Text>
+                ))}
+                <TouchableOpacity
+                    style={styles.AddButton}
+                    onPress={() => navigation.navigate('AddIngredient')}
+                >
+                    <LinearGradient
+                        colors={[COLORS.orange, '#f05a1a']}
+                        style={styles.gradientButton}
+                    >
+                        <Icon name="plus" size={24} color={COLORS.white} />
+                        <Text style={styles.buttonText}>Add Ingredient</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
 
                 <Text>Steps</Text>
+                {steps.map((step, index) => (
+                    <Text key={index} style={styles.listItem}>{step}</Text>
+                ))}
                 <TextInput
                     style={styles.input}
-                    placeholder='Steps (comma separated)'
-                    value={steps}
-                    onChangeText={setSteps}
+                    placeholder='Add a step'
+                    value={stepInput}
+                    onChangeText={setStepInput}
                 />
 
-                <TouchableOpacity 
-                    onPress={handleCreateRecipe} 
-                    style={styles.button}
+                <TouchableOpacity
+                    style={styles.AddButton}
+                    onPress={handleAddStep} 
                 >
+                    <LinearGradient
+                        colors={[COLORS.orange, '#f05a1a']}
+                        style={styles.gradientButton}
+                    >
+                        <Icon name="plus" size={24} color={COLORS.white} />
+                        <Text style={styles.buttonText}>Add Step</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={handleCreateRecipe} style={styles.button}>
                     <Text style={styles.buttonText}>Create Recipe</Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -105,11 +149,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 10,
         paddingHorizontal: 10,
-        marginBottom: 15,
+        marginBottom: 10,
+    },
+    listItem: {
+        fontSize: 16,
+        marginBottom: 5,
     },
     button: {
-        marginBottom: 10,
-        borderColor: 'transparent',
+        marginTop: 15,
         borderRadius: 20,
         backgroundColor: "#4CAF50",
         paddingVertical: 15,
@@ -117,9 +164,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         elevation: 4,
     },
+    AddButton: {
+        borderRadius: 20,
+        overflow: 'hidden',
+        marginBottom: 30,
+        shadowColor: '#E36820',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+    },
+    gradientButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 18,
+        paddingHorizontal: 30,
+    },
     buttonText: {
         color: '#FFFFFF',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
     },
 });
