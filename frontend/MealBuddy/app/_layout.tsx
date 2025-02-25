@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Tabs, useNavigation } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Animated, Modal, View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import LoginRegister from '../composants/LoginRegister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -45,7 +45,7 @@ export default function Layout() {
   const [isLoading, setIsLoading] = useState(true); // Nouvel état pour le chargement
   const slideAnimation = useRef(new Animated.Value(300)).current;
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation();
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
@@ -234,46 +234,48 @@ export default function Layout() {
       >
         {/* Le reste de ton Modal reste identique */}
         <Animated.View style={[styles.modalBackground, { opacity: fadeAnimation }]}>
-          <Animated.View
-            style={[
-              styles.modalContainer,
-              {
-                transform: [{ translateY: slideAnimation }],
-              },
-            ]}
-          >
+          <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnimation }] }]}>
             <Text style={{ fontSize: 30, fontWeight: 'bold', color: '#68AA64' }}>Add a meal:</Text>
+
             <Pressable
               style={styles.modalButton}
               onPress={() => {
                 console.log('Matin pressed');
-                const mealType = "Breakfast";
-                navigation.navigate('MealDetails', { mealType, date: selectedDate });
+                router.push({
+                  pathname: "/MealDetails",
+                  params: { mealType: 'Breakfast', date: selectedDate.toISOString() },
+                });
                 closeOverlay();
               }}
             >
               <Text style={styles.buttonText}>Breakfast</Text>
               <Image source={require('../assets/bottomBar/Light/sunrise.png')} style={{ width: 30, height: 30 }} />
             </Pressable>
+
             <View style={{ flexDirection: 'row', gap: 20 }}>
               <Pressable
                 style={styles.modalButton}
                 onPress={() => {
                   console.log('Midi pressed');
-                  const mealType = "Lunch";
-                  navigation.navigate('MealDetails', { mealType, date: selectedDate });
+                  router.push({
+                    pathname: "/MealDetails",
+                    params: { mealType: 'Lunch', date: selectedDate.toISOString() },
+                  });
                   closeOverlay();
                 }}
               >
                 <Text style={styles.buttonText}>Lunch</Text>
                 <Image source={require('../assets/bottomBar/Light/sun.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
+
               <Pressable
                 style={styles.modalButton}
                 onPress={() => {
                   console.log('Soir pressed');
-                  const mealType = "Dinner";
-                  navigation.navigate('MealDetails', { mealType, date: selectedDate });
+                  router.push({
+                    pathname: "/MealDetails",
+                    params: { mealType: 'Dinner', date: selectedDate.toISOString() },
+                  });
                   closeOverlay();
                 }}
               >
@@ -281,10 +283,12 @@ export default function Layout() {
                 <Image source={require('../assets/bottomBar/Light/sunset.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
             </View>
+
             <Pressable style={styles.closeButton} onPress={closeOverlay}>
               <Text style={styles.closeText}>Close</Text>
             </Pressable>
           </Animated.View>
+
         </Animated.View>
       </Modal>
     </>

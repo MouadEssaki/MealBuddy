@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
+        marginBottom: 25,
     },
     recipeCard: {
         width: '100%',
@@ -223,6 +224,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
+        
     },
     recipeImage: {
         width: '100%',

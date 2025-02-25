@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
   streakCard: {
     borderRadius: 20,
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 35,
     overflow: 'hidden',
     elevation: 8,
     shadowColor: '#FF6B6B',
