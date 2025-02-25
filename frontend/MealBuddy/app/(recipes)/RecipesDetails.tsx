@@ -93,26 +93,34 @@ export default function RecipesDetails() {
                 </View>
 
                 {/* Nutrition Card */}
-                <View style={styles.card}>
+                <View style={[styles.card, { marginBottom: 30 }]}>
                     <View style={styles.sectionHeader}>
                         <MaterialCommunityIcons name="nutrition" size={24} color={COLORS.vert} />
                         <Text style={styles.sectionTitle}>Nutrition Facts</Text>
                     </View>
                     <View style={styles.nutritionGrid}>
                         <View style={styles.nutritionItem}>
-                            <Text style={styles.nutritionValue}>{recipeData.nutritional_info?.proteins || '0'}</Text>
+                            <Text style={styles.nutritionValue}>
+                                {parseFloat(recipeData.nutritional_info?.proteins?.toFixed(1)) || '0'}
+                            </Text>
                             <Text style={styles.nutritionLabel}>Protein (g)</Text>
                         </View>
                         <View style={styles.nutritionItem}>
-                            <Text style={styles.nutritionValue}>{recipeData.nutritional_info?.carbs || '0'}</Text>
+                            <Text style={styles.nutritionValue}>
+                                {parseFloat(recipeData.nutritional_info?.carbs?.toFixed(1)) || '0'}
+                            </Text>
                             <Text style={styles.nutritionLabel}>Carbs (g)</Text>
                         </View>
                         <View style={styles.nutritionItem}>
-                            <Text style={styles.nutritionValue}>{recipeData.nutritional_info?.fats || '0'}</Text>
+                            <Text style={styles.nutritionValue}>
+                                {parseFloat(recipeData.nutritional_info?.fats?.toFixed(1)) || '0'}
+                            </Text>
                             <Text style={styles.nutritionLabel}>Fat (g)</Text>
                         </View>
                         <View style={styles.nutritionItem}>
-                            <Text style={styles.nutritionValue}>{recipeData.nutritional_info?.fiber || '0'}</Text>
+                            <Text style={styles.nutritionValue}>
+                                {parseFloat(recipeData.nutritional_info?.fiber?.toFixed(1)) || '0'}
+                            </Text>
                             <Text style={styles.nutritionLabel}>Fiber (g)</Text>
                         </View>
                     </View>
@@ -193,6 +201,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 6,
+        
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -254,6 +263,7 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         gap: 12,
         marginTop: 12,
+        
     },
     nutritionItem: {
         width: '48%',
@@ -261,6 +271,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
+
     },
     nutritionValue: {
         fontSize: 20,

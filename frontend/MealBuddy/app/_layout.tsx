@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Tabs, useNavigation } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Animated, Modal, View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import LoginRegister from '../composants/LoginRegister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +9,8 @@ const AnimatedTabIcon = ({
   focused,
   activeSource,
   inactiveSource,
+  activeColor = '#68AA64',  // Default active color
+  inactiveColor = '#A0A0A0',  // Default inactive color
   activeScale = 1.2,
   inactiveScale = 1,
 }) => {
@@ -30,6 +32,7 @@ const AnimatedTabIcon = ({
         height: 33,
         marginBottom: -20,
         transform: [{ scale: scaleAnim }],
+        tintColor: focused ? activeColor : inactiveColor,  // Add tint color
       }}
       resizeMode="contain"
     />
@@ -42,7 +45,7 @@ export default function Layout() {
   const [isLoading, setIsLoading] = useState(true); // Nouvel état pour le chargement
   const slideAnimation = useRef(new Animated.Value(300)).current;
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation();
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
@@ -134,8 +137,22 @@ export default function Layout() {
         {!authToken ? (
           <LoginRegister onAuthSuccess={handleAuthSuccess} />
         ) : (
-          <Tabs screenOptions={{ tabBarShowLabel: false, headerShown: false }}>
-            {/* Le reste de tes Tabs reste identique */}
+          <Tabs
+            screenOptions={{
+              tabBarShowLabel: false,
+              headerShown: false,
+              tabBarStyle: {
+                borderTopLeftRadius: 20, // Change this value to adjust the border radius
+                borderTopRightRadius: 20, // Change this value to adjust the border radius
+                height: 75, // Adjust the height if needed
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#fff', // Adjust the background color if needed
+              },
+            }}
+          >
             <Tabs.Screen
               name="(home)"
               options={{
@@ -144,7 +161,6 @@ export default function Layout() {
                     focused={focused}
                     activeSource={require('../assets/bottomBar/Bold/Home.png')}
                     inactiveSource={require('../assets/bottomBar/Light/Home.png')}
-                    activeScale={1.15}
                   />
                 ),
               }}
@@ -157,7 +173,6 @@ export default function Layout() {
                     focused={focused}
                     activeSource={require('../assets/bottomBar/Bold/Recipes.png')}
                     inactiveSource={require('../assets/bottomBar/Light/Recipes.png')}
-                    activeScale={1.15}
                   />
                 ),
               }}
@@ -169,7 +184,7 @@ export default function Layout() {
                   <Pressable onPress={openOverlay}>
                     <Image
                       source={require('../assets/bottomBar/Add.png')}
-                      style={styles.plusImage}
+                      style={[styles.plusImage, { tintColor: '#68AA64' }]}  // Green color
                       resizeMode="contain"
                     />
                   </Pressable>
@@ -203,7 +218,6 @@ export default function Layout() {
                     focused={focused}
                     activeSource={require('../assets/bottomBar/Bold/User.png')}
                     inactiveSource={require('../assets/bottomBar/Light/User.png')}
-                    activeScale={1.15}
                   />
                 ),
               }}
@@ -220,46 +234,48 @@ export default function Layout() {
       >
         {/* Le reste de ton Modal reste identique */}
         <Animated.View style={[styles.modalBackground, { opacity: fadeAnimation }]}>
-          <Animated.View
-            style={[
-              styles.modalContainer,
-              {
-                transform: [{ translateY: slideAnimation }],
-              },
-            ]}
-          >
+          <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnimation }] }]}>
             <Text style={{ fontSize: 30, fontWeight: 'bold', color: '#68AA64' }}>Add a meal:</Text>
+
             <Pressable
               style={styles.modalButton}
               onPress={() => {
                 console.log('Matin pressed');
-                const mealType = "Breakfast";
-                navigation.navigate('MealDetails', { mealType, date: selectedDate });
+                router.push({
+                  pathname: "/MealDetails",
+                  params: { mealType: 'Breakfast', date: selectedDate.toISOString() },
+                });
                 closeOverlay();
               }}
             >
               <Text style={styles.buttonText}>Breakfast</Text>
               <Image source={require('../assets/bottomBar/Light/sunrise.png')} style={{ width: 30, height: 30 }} />
             </Pressable>
+
             <View style={{ flexDirection: 'row', gap: 20 }}>
               <Pressable
                 style={styles.modalButton}
                 onPress={() => {
                   console.log('Midi pressed');
-                  const mealType = "Lunch";
-                  navigation.navigate('MealDetails', { mealType, date: selectedDate });
+                  router.push({
+                    pathname: "/MealDetails",
+                    params: { mealType: 'Lunch', date: selectedDate.toISOString() },
+                  });
                   closeOverlay();
                 }}
               >
                 <Text style={styles.buttonText}>Lunch</Text>
                 <Image source={require('../assets/bottomBar/Light/sun.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
+
               <Pressable
                 style={styles.modalButton}
                 onPress={() => {
                   console.log('Soir pressed');
-                  const mealType = "Dinner";
-                  navigation.navigate('MealDetails', { mealType, date: selectedDate });
+                  router.push({
+                    pathname: "/MealDetails",
+                    params: { mealType: 'Dinner', date: selectedDate.toISOString() },
+                  });
                   closeOverlay();
                 }}
               >
@@ -267,10 +283,12 @@ export default function Layout() {
                 <Image source={require('../assets/bottomBar/Light/sunset.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
             </View>
+
             <Pressable style={styles.closeButton} onPress={closeOverlay}>
               <Text style={styles.closeText}>Close</Text>
             </Pressable>
           </Animated.View>
+
         </Animated.View>
       </Modal>
     </>
