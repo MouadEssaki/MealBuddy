@@ -167,9 +167,14 @@ export default function AddMeal() {
                 ) :
                     research === '' ? (
                         <View style={styles.emptyState}>
-
                             <Text style={styles.emptyTitle}>Start Searching</Text>
                             <Text style={styles.emptyText}>Type the name of the meal you want to add</Text>
+                            <LottieView
+                                source={require('../../assets/searchAnim.json')}
+                                autoPlay
+                                loop
+                                style={styles.loadingAnimation}
+                            />
                         </View>
                     ) :
 

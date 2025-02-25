@@ -1,53 +1,49 @@
-
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
-import { ApplicationProvider, Layout, Text, Card, Button, Icon } from '@ui-kitten/components';
-import * as eva from '@eva-design/eva';
+import {
+    View,
+    ScrollView,
+    TouchableOpacity,
+    StyleSheet,
+    Dimensions,
+    ActivityIndicator,
+    Text,
+    SafeAreaView
+} from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-import { customTheme } from './customTheme'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 
 
-const formatDate = (date) => date.toISOString().split('T')[0];
-const getMonthName = (date) => date.toLocaleString('default', { month: 'long' });
-const generateMonthDays = (date) => {
-    const days = [];
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const prevMonthDays = firstDay.getDay();
-    const nextMonthDays = 6 - lastDay.getDay();
-    const totalDays = prevMonthDays + lastDay.getDate() + nextMonthDays;
 
-    for (let i = 1 - prevMonthDays; i <= totalDays - prevMonthDays; i++) {
-        days.push(new Date(year, month, i));
-    }
-    return days;
+
+const COLORS = {
+    vertClaire: '#68AA64',
+    vert: '#105F3B',
+    orange: '#E36820',
+    beige: '#FFF4E4',
+    white: '#FFFFFF',
+    background: '#F9F9F9'
 };
 
-// Icons
-const CalendarIcon = (props) => <Icon {...props} name='calendar' />;
-const StatsIcon = (props) => <Icon {...props} name='activity' />;
-const ChevronLeft = (props) => <Icon {...props} name='arrow-ios-back' />;
-const ChevronRight = (props) => <Icon {...props} name='arrow-ios-forward' />;
+const { width } = Dimensions.get('window');
 
-// Helper Components
 const NutritionPill = ({ label, value }) => (
     <View style={styles.nutritionPill}>
-        <Text category='c2' appearance='hint'>{label}</Text>
-        <Text category='s2' style={styles.nutritionValue}>{value}</Text>
+        <Text style={styles.nutritionLabel}>{label}</Text>
+        <Text style={styles.nutritionValue}>{value}</Text>
     </View>
 );
 
 const StatPill = ({ label, value, unit }) => (
-    <Card style={styles.statPill}>
-        <Text category='c2' appearance='hint'>{label}</Text>
-        <Text category='h5' style={styles.statValue}>
-            {value}<Text category='c1' appearance='hint'> {unit}</Text>
+    <View style={styles.statPill}>
+        <Text style={styles.statLabel}>{label}</Text>
+        <Text style={styles.statValue}>
+            {value}<Text style={styles.statUnit}> {unit}</Text>
         </Text>
-    </Card>
+    </View>
 );
+
 
 export default function FoodDiary() {
     const [activeTab, setActiveTab] = useState('calendar');
@@ -71,7 +67,7 @@ export default function FoodDiary() {
                         }
                     }
                 );
-
+                console.log(response);
                 if (!response.ok) throw new Error('Failed to fetch meal logs');
 
                 const data = await response.json();
@@ -138,40 +134,36 @@ export default function FoodDiary() {
     };
 
     const renderMealCard = (meal) => (
-
-        <Card
+        <TouchableOpacity
             key={meal.id}
             style={[styles.mealCard, expandedMeals.includes(meal.id) && styles.expandedMealCard]}
+            onPress={() => toggleMealDetails(meal.id)}
+            activeOpacity={0.9}
         >
-            <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => toggleMealDetails(meal.id)}
-            >
-                <View style={styles.mealHeader}>
-                    <View style={[styles.mealTypeIndicator,
-                    { backgroundColor: getMealColor(meal.time) }]}
-                    />
-                    <Text category='s2' style={styles.mealTime}>{meal.time}</Text>
-                    <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
-                </View>
+            <View style={styles.mealHeader}>
+                <LinearGradient
+                    colors={[getMealColor(meal.time), '#8BC34A']}
+                    style={styles.mealTypeIndicator}
+                />
+                <Text style={styles.mealTime}>{meal.time}</Text>
+                <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
+            </View>
 
-                {expandedMeals.includes(meal.id) && (
-                    <View style={styles.mealDetails}>
-                        <Text category='s2' style={styles.detailTitle}>Ingredients:</Text>
-                        {meal.items.map((item, index) => (
-                            <Text key={index} style={styles.detailItem}>• {item.name} ({item.quanitity}g)</Text>
-                        ))}
+            {expandedMeals.includes(meal.id) && (
+                <View style={styles.mealDetails}>
+                    <Text style={styles.detailTitle}>Ingredients:</Text>
+                    {meal.items.map((item, index) => (
+                        <Text key={index} style={styles.detailItem}>• {item.name} ({item.quantity}g)</Text>
+                    ))}
 
-                        <View style={styles.nutritionGrid}>
-                            <NutritionPill label="Protein" value={`${meal.nutrients.protein}g`} />
-                            <NutritionPill label="Carbs" value={`${meal.nutrients.carbs}g`} />
-                            <NutritionPill label="Fats" value={`${meal.nutrients.fats}g`} />
-                        </View>
+                    <View style={styles.nutritionGrid}>
+                        <NutritionPill label="Protein" value={`${meal.nutrients.protein}g`} />
+                        <NutritionPill label="Carbs" value={`${meal.nutrients.carbs}g`} />
+                        <NutritionPill label="Fats" value={`${meal.nutrients.fats}g`} />
                     </View>
-                )}
-            </TouchableOpacity>
-        </Card>
-
+                </View>
+            )}
+        </TouchableOpacity>
     );
 
     const generateChartData = () => {
@@ -197,252 +189,267 @@ export default function FoodDiary() {
         };
     };
 
+
     if (loading) {
         return (
-            <Layout style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={customTheme.vert} />
-            </Layout>
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.vert} />
+            </View>
         );
     }
+
 
     if (error) {
+        const fetchMealLogs = async () => {
+            try {
+                const token = await AsyncStorage.getItem('authToken');
+                console.log(token);
+                const response = await fetch(
+                    'https://mealbuddy-smartgroup2025.azurewebsites.net/api/MealLogs/current',
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+                console.log(response);
+                if (!response.ok) throw new Error('Failed to fetch meal logs');
+
+                const data = await response.json();
+                setMealLogs(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         return (
-            <Layout style={styles.errorContainer}>
+            <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>Error: {error}</Text>
-                <Button onPress={() => fetchMealLogs()}>Retry</Button>
-            </Layout>
+                <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={() => fetchMealLogs()}
+                >
+                    <Text style={styles.retryText}>Retry</Text>
+                </TouchableOpacity>
+            </View>
         );
     }
+
     return (
-        <ApplicationProvider {...eva} theme={{ ...eva.light, ...customTheme }}>
-            <Layout style={styles.container}>
-                {/* Tab Selector */}
-                <View style={styles.tabContainer}>
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === 'calendar' && styles.activeTabButton
-                        ]}
-                        onPress={() => setActiveTab('calendar')}
-                    >
-                        <Text style={[
-                            styles.tabText,
-                            activeTab === 'calendar' && styles.activeTabText
-                        ]}>
-                            Calendrier
+        <SafeAreaView style={styles.container}>
+            {/* Tab Selector */}
+            <View style={styles.tabContainer}>
+                <TouchableOpacity
+                    style={[styles.tabButton, activeTab === 'calendar' && styles.activeTab]}
+                    onPress={() => setActiveTab('calendar')}
+                >
+                    <Text style={[styles.tabText, activeTab === 'calendar' && styles.activeTabText]}>
+                        Calendar
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.tabButton, activeTab === 'stats' && styles.activeTab]}
+                    onPress={() => setActiveTab('stats')}
+                >
+                    <Text style={[styles.tabText, activeTab === 'stats' && styles.activeTabText]}>
+                        Statistics
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {activeTab === 'calendar' ? (
+                <ScrollView contentContainerStyle={styles.contentContainer}>
+                    {/* Calendar Header */}
+                    <View style={styles.calendarHeader}>
+                        <TouchableOpacity onPress={() => handleMonthChange(-1)}>
+                            <Icon name="chevron-left" size={28} color={COLORS.vert} />
+                        </TouchableOpacity>
+                        <Text style={styles.monthHeader}>
+                            {getMonthName(currentDate)} {currentDate.getFullYear()}
                         </Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleMonthChange(1)}>
+                            <Icon name="chevron-right" size={28} color={COLORS.vert} />
+                        </TouchableOpacity>
+                    </View>
 
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === 'stats' && styles.activeTabButton
-                        ]}
-                        onPress={() => setActiveTab('stats')}
-                    >
-                        <Text style={[
-                            styles.tabText,
-                            activeTab === 'stats' && styles.activeTabText
-                        ]}>
-                            Statistiques
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                    {/* Calendar Grid */}
+                    <View style={styles.calendarGrid}>
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                            <Text key={day} style={styles.weekDayHeader}>{day}</Text>
+                        ))}
+                        {generateMonthDays(currentDate).map((date, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.dayCell,
+                                    date.getMonth() !== currentDate.getMonth() && styles.adjacentMonthDay,
+                                    formatDate(date) === formatDate(selectedDate) && styles.selectedDay
+                                ]}
+                                onPress={() => setSelectedDate(date)}
+                            >
+                                <Text style={[
+                                    styles.dayText,
+                                    date.getMonth() !== currentDate.getMonth() && styles.adjacentMonthText,
+                                    formatDate(date) === formatDate(selectedDate) && styles.selectedDayText
+                                ]}>
+                                    {date.getDate()}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
 
-                {activeTab === 'calendar' ? (
-                    <ScrollView contentContainerStyle={styles.calendarContainer}>
-                        {/* Calendar Header */}
-                        <View style={styles.calendarHeader}>
-                            <Button
-                                appearance='ghost'
-                                accessoryLeft={ChevronLeft}
-                                onPress={() => handleMonthChange(-1)}
-                                style={styles.navButton}
-                            />
-                            <Text category='h6' style={styles.monthHeader}>
-                                {getMonthName(currentDate)} {currentDate.getFullYear()}
-                            </Text>
-                            <Button
-                                appearance='ghost'
-                                accessoryLeft={ChevronRight}
-                                onPress={() => handleMonthChange(1)}
-                                style={styles.navButton}
-                            />
-                        </View>
+                    {/* Daily Meals */}
+                    <Text style={styles.sectionHeader}>Meals for {formatDate(selectedDate)}</Text>
+                    {processMeals().map(renderMealCard)}
+                </ScrollView>
+            ) : (
+                <ScrollView contentContainerStyle={styles.statsContainer}>
+                    <View style={styles.chartCard}>
+                        <Text style={styles.chartTitle}>Weekly Calories</Text>
+                        <BarChart
+                            data={generateChartData()}
+                            width={width - 40}
+                            height={220}
+                            yAxisSuffix="kcal"
+                            chartConfig={{
+                                backgroundColor: COLORS.beige,
+                                backgroundGradientFrom: COLORS.beige,
+                                backgroundGradientTo: COLORS.beige,
+                                decimalPlaces: 0,
+                                color: () => COLORS.vert,
+                                labelColor: () => COLORS.vert,
+                                style: { borderRadius: 16 },
+                                propsForLabels: { fontSize: 12 }
+                            }}
+                            style={styles.chart}
+                        />
+                    </View>
 
-                        {/* Calendar Grid */}
-                        <View style={styles.calendarGrid}>
-                            {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
-                                <Text key={day} style={styles.weekDayHeader}>{day}</Text>
-                            ))}
-                            {generateMonthDays(currentDate).map((date, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={[
-                                        styles.dayCell,
-                                        date.getMonth() !== currentDate.getMonth() && styles.adjacentMonthDay,
-                                        formatDate(date) === formatDate(selectedDate) && styles.selectedDay
-                                    ]}
-                                    onPress={() => setSelectedDate(date)}
-                                >
-                                    <Text style={[
-                                        styles.dayText,
-                                        date.getMonth() !== currentDate.getMonth() && styles.adjacentMonthText,
-                                        formatDate(date) === formatDate(selectedDate) && styles.selectedDayText
-                                    ]}>
-                                        {date.getDate()}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        {/* Daily Meals */}
-                        <Text category='h6' style={styles.sectionHeader}>
-                            Repas du {formatDate(selectedDate)}
-                        </Text>
-                        {processMeals().map(renderMealCard)}
-                    </ScrollView>
-                ) : (
-                    <ScrollView contentContainerStyle={styles.statsContainer}>
-                        <Card style={styles.chartCard}>
-                            <Text category='h6' style={styles.chartTitle}>Calories Hebdomadaires</Text>
-                            <BarChart
-                                data={generateChartData()}
-                                width={Dimensions.get('window').width - 32}
-                                height={220}
-                                yAxisSuffix="kcal"
-                                chartConfig={{
-                                    backgroundColor: customTheme.beige,
-                                    backgroundGradientFrom: customTheme.beige,
-                                    backgroundGradientTo: customTheme.beige,
-                                    decimalPlaces: 0,
-                                    color: (opacity = 1) => customTheme.vert,
-                                    labelColor: (opacity = 1) => customTheme.vert,
-                                    style: { borderRadius: 16 },
-                                    propsForLabels: {
-                                        fontSize: 12,
-                                        fontFamily: 'System'
-                                    }
-                                }}
-                                style={styles.chart}
-                            />
-                        </Card>
-
-                        <View style={styles.statsGrid}>
-                            <StatPill label="Moy. Journalière" value="1980" unit="kcal" />
-                            <StatPill label="Eau consommée" value="1.8" unit="L" />
-                            <StatPill label="Protéines" value="82" unit="g" />
-                            <StatPill label="Activité" value="45" unit="min" />
-                        </View>
-                    </ScrollView>
-                )}
-            </Layout>
-        </ApplicationProvider>
+                    <View style={styles.statsGrid}>
+                        <StatPill label="Daily Average" value="1980" unit="kcal" />
+                        <StatPill label="Water" value="1.8" unit="L" />
+                        <StatPill label="Protein" value="82" unit="g" />
+                        <StatPill label="Activity" value="45" unit="min" />
+                    </View>
+                </ScrollView>
+            )}
+        </SafeAreaView>
     );
 }
 
-// Styles
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: customTheme.fond
+        backgroundColor: COLORS.background
     },
     tabContainer: {
         flexDirection: 'row',
-        borderBottomWidth: 2,
-        borderBottomColor: customTheme.beige,
-        marginHorizontal: 16,
-        marginTop: 8
+        marginHorizontal: 20,
+        marginTop: 15,
+        borderRadius: 15,
+        backgroundColor: COLORS.beige,
+        overflow: 'hidden'
     },
     tabButton: {
         flex: 1,
-        paddingVertical: 12,
-        borderBottomWidth: 3,
-        borderBottomColor: 'transparent'
+        paddingVertical: 14,
+        alignItems: 'center'
     },
-    activeTabButton: {
-        borderBottomColor: customTheme.vert
+    activeTab: {
+        backgroundColor: COLORS.vert
     },
     tabText: {
-        textAlign: 'center',
-        color: customTheme.vertClaire,
-        fontSize: 16
+        fontSize: 16,
+        color: COLORS.vert,
+        fontWeight: '500'
     },
     activeTabText: {
-        color: customTheme.vert,
-        fontWeight: 'bold'
+        color: COLORS.white,
+        fontWeight: '600'
     },
     calendarHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 8,
-        marginVertical: 16
+        paddingHorizontal: 20,
+        marginVertical: 20
     },
     monthHeader: {
-        color: customTheme.vert,
-        fontWeight: 'bold',
-        fontSize: 18
-    },
-    navButton: {
-        width: 40,
-        height: 40
+        fontSize: 20,
+        fontWeight: '600',
+        color: COLORS.vert
     },
     calendarGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginHorizontal: 8
+        marginHorizontal: 10,
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        padding: 5
     },
     weekDayHeader: {
         width: '14.28%',
         textAlign: 'center',
-        color: customTheme.vert,
-        paddingVertical: 8,
-        fontSize: 12
+        color: COLORS.vert,
+        paddingVertical: 12,
+        fontSize: 12,
+        fontWeight: '500'
     },
     dayCell: {
         width: '14.28%',
         aspectRatio: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: customTheme.beige,
-        margin: 1
+        backgroundColor: COLORS.beige,
+        borderRadius: 8,
+        margin: 2
     },
     selectedDay: {
-        backgroundColor: customTheme.vertClaire
+        backgroundColor: COLORS.vert
     },
     dayText: {
-        fontSize: 14
+        fontSize: 16,
+        color: COLORS.vert
     },
     selectedDayText: {
-        color: 'white',
-        fontWeight: 'bold'
+        color: COLORS.white,
+        fontWeight: '600'
     },
     adjacentMonthDay: {
-        backgroundColor: '#f8f8f8'
+        backgroundColor: '#F8F8F8'
     },
     adjacentMonthText: {
-        color: '#aaa'
+        color: '#AAA'
     },
     sectionHeader: {
-        color: customTheme.vert,
-        fontWeight: 'bold',
         fontSize: 18,
-        margin: 16
+        fontWeight: '600',
+        color: COLORS.vert,
+        margin: 20
     },
     mealCard: {
-        margin: 8,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: customTheme.beige
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        marginHorizontal: 20,
+        marginVertical: 8,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3
     },
     expandedMealCard: {
-        borderColor: customTheme.vertClaire
+        borderWidth: 2,
+        borderColor: COLORS.vertClaire
     },
     mealHeader: {
         flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12
+        alignItems: 'center'
     },
     mealTypeIndicator: {
         width: 6,
@@ -452,29 +459,32 @@ const styles = StyleSheet.create({
     },
     mealTime: {
         flex: 1,
-        color: customTheme.vert,
-        fontWeight: 'bold',
-        fontSize: 16
+        fontSize: 16,
+        fontWeight: '600',
+        color: COLORS.vert
     },
     mealCalories: {
-        color: customTheme.vertClaire,
-        fontSize: 14
+        fontSize: 14,
+        color: COLORS.orange,
+        fontWeight: '500'
     },
     mealDetails: {
-        padding: 12,
+        paddingTop: 16,
+        marginTop: 12,
         borderTopWidth: 1,
-        borderTopColor: customTheme.beige
+        borderTopColor: COLORS.beige
     },
     detailTitle: {
-        color: customTheme.vert,
-        marginBottom: 8,
-        fontSize: 14
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginBottom: 8
     },
     detailItem: {
-        color: customTheme.vert,
+        fontSize: 14,
+        color: COLORS.vert,
         marginLeft: 8,
-        marginBottom: 4,
-        fontSize: 14
+        marginBottom: 4
     },
     nutritionGrid: {
         flexDirection: 'row',
@@ -482,76 +492,105 @@ const styles = StyleSheet.create({
         marginTop: 12
     },
     nutritionPill: {
-        backgroundColor: customTheme.beige,
+        backgroundColor: COLORS.beige,
         borderRadius: 20,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 16,
         margin: 4
     },
+    nutritionLabel: {
+        fontSize: 12,
+        color: COLORS.vert,
+        opacity: 0.8
+    },
     nutritionValue: {
-        color: customTheme.vert,
-        fontWeight: 'bold'
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginTop: 4
     },
     chartCard: {
-        margin: 16,
-        borderRadius: 12
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        padding: 16,
+        margin: 20
     },
     chartTitle: {
-        color: customTheme.vert,
+        fontSize: 18,
+        fontWeight: '600',
+        color: COLORS.vert,
         textAlign: 'center',
-        marginBottom: 16,
-        fontWeight: 'bold',
-        fontSize: 16
-    },
-    chart: {
-        marginVertical: 8,
-        borderRadius: 16
-    },
-    statsContainer: {
-        flexGrow: 1,
-        paddingBottom: 20
+        marginBottom: 16
     },
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        paddingHorizontal: 16
+        paddingHorizontal: 20
     },
     statPill: {
         width: '45%',
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        padding: 16,
         margin: 8,
-        borderRadius: 12,
-        backgroundColor: customTheme.beige,
-        alignItems: 'center'
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3
+    },
+    statLabel: {
+        fontSize: 12,
+        color: COLORS.vert,
+        opacity: 0.8
     },
     statValue: {
-        color: customTheme.vert,
-        marginTop: 4,
-        fontWeight: 'bold'
+        fontSize: 20,
+        fontWeight: '700',
+        color: COLORS.vert,
+        marginTop: 8
+    },
+    statUnit: {
+        fontSize: 14,
+        fontWeight: '500'
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: COLORS.background
     },
     errorContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20
+        padding: 20,
+        backgroundColor: COLORS.background
     },
     errorText: {
-        color: 'red',
+        color: COLORS.orange,
+        fontSize: 16,
         marginBottom: 20
-    }
+    },
+    retryButton: {
+        backgroundColor: COLORS.vert,
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 25
+    },
+    retryText: {
+        color: COLORS.white,
+        fontSize: 16,
+        fontWeight: '600'
+    },
 });
 
-// // Color mapping function
-// const getMealColor = (mealType) => {
-//     switch (mealType.toLowerCase()) {
-//         case 'breakfast': return customTheme.orange;
-//         case 'lunch': return customTheme.vert;
-//         case 'dinner': return customTheme.vertClaire;
-//         default: return customTheme.vert;
-//     }
-// };
+const getMealColor = (mealType) => {
+    switch (mealType.toLowerCase()) {
+        case 'breakfast': return COLORS.orange;
+        case 'lunch': return COLORS.vert;
+        case 'dinner': return COLORS.vertClaire;
+        default: return COLORS.vert;
+    }
+};
