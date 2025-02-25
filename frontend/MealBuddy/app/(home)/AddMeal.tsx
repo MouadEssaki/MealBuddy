@@ -33,6 +33,7 @@ export default function AddMeal() {
     const [error, setError] = useState(null);
     const [stillNotThere, setStillNotThere] = useState(false);
     const navigation = useNavigation();
+    const { mealType, date } = useLocalSearchParams()
 
     const apiPoint = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/foods";
     const apiAdvancedResearch = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/utils/search_food";
@@ -122,7 +123,7 @@ export default function AddMeal() {
     }, [research]);
 
     const handleMealDetails = (meal) => {
-        navigation.navigate('SelectedMeal', { selectedMeal: JSON.stringify(meal) });
+        navigation.navigate('SelectedMeal', { selectedMeal: JSON.stringify(meal), mealType, date });
     };
 
 

@@ -30,12 +30,14 @@ export default function MealDetails() {
     const [meal, setMeal] = useState([]);
     const [error, setError] = useState<string | null>(null);
     const navigation = useNavigation();
+    const [refreshKey, setRefreshKey] = useState(0); // Add refresh state
 
     const fetchMealPlan = async () => {
         setLoading(true);
         try {
             const mealPlan = await getMealPlan(date);
             setMeal(mealPlan.meal[mealType] || []);
+            console.log(mealPlan.meal[mealType]);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -43,9 +45,18 @@ export default function MealDetails() {
         }
     };
 
-    useFocusEffect(useCallback(() => { fetchMealPlan(); }, [mealType, date]));
+    // In your parent component (e.g., food diary screen)
+    useFocusEffect(
+        useCallback(() => {
+            const fetchData = async () => {
+                console.log('Refreshing data...');
+                await fetchMealPlan();
+            };
+            fetchData();
+        }, [refreshKey]) // Add dependency here
+    );
 
-    const handleAddMeal = () => navigation.navigate('AddMeal');
+    const handleAddMeal = () => navigation.navigate('AddMeal', { mealType, date });
     const handleDelete = async (itemId: string) => {
         try {
             await deleteMealItem(date, mealType, itemId);
@@ -79,7 +90,7 @@ export default function MealDetails() {
                                 <View key={index} style={styles.mealCard}>
                                     <View style={styles.mealInfo}>
                                         <Text style={styles.mealName}>{item.name}</Text>
-                                        <Text style={styles.mealDetails}>{item.calories} kcal • {item.quantity}</Text>
+                                        <Text style={styles.mealDetails}>{item.nutritional_info.calories} kcal • {item.quantity_measurement}</Text>
                                     </View>
                                     <TouchableOpacity
                                         onPress={() => handleDelete(item.id)}
