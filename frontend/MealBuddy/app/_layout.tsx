@@ -9,6 +9,8 @@ const AnimatedTabIcon = ({
   focused,
   activeSource,
   inactiveSource,
+  activeColor = '#68AA64',  // Default active color
+  inactiveColor = '#A0A0A0',  // Default inactive color
   activeScale = 1.2,
   inactiveScale = 1,
 }) => {
@@ -30,6 +32,7 @@ const AnimatedTabIcon = ({
         height: 33,
         marginBottom: -20,
         transform: [{ scale: scaleAnim }],
+        tintColor: focused ? activeColor : inactiveColor,  // Add tint color
       }}
       resizeMode="contain"
     />
@@ -134,8 +137,22 @@ export default function Layout() {
         {!authToken ? (
           <LoginRegister onAuthSuccess={handleAuthSuccess} />
         ) : (
-          <Tabs screenOptions={{ tabBarShowLabel: false, headerShown: false }}>
-            {/* Le reste de tes Tabs reste identique */}
+          <Tabs
+            screenOptions={{
+              tabBarShowLabel: false,
+              headerShown: false,
+              tabBarStyle: {
+                borderTopLeftRadius: 20, // Change this value to adjust the border radius
+                borderTopRightRadius: 20, // Change this value to adjust the border radius
+                height: 75, // Adjust the height if needed
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#fff', // Adjust the background color if needed
+              },
+            }}
+          >
             <Tabs.Screen
               name="(home)"
               options={{
@@ -144,7 +161,6 @@ export default function Layout() {
                     focused={focused}
                     activeSource={require('../assets/bottomBar/Bold/Home.png')}
                     inactiveSource={require('../assets/bottomBar/Light/Home.png')}
-                    activeScale={1.15}
                   />
                 ),
               }}
@@ -157,7 +173,6 @@ export default function Layout() {
                     focused={focused}
                     activeSource={require('../assets/bottomBar/Bold/Recipes.png')}
                     inactiveSource={require('../assets/bottomBar/Light/Recipes.png')}
-                    activeScale={1.15}
                   />
                 ),
               }}
@@ -169,7 +184,7 @@ export default function Layout() {
                   <Pressable onPress={openOverlay}>
                     <Image
                       source={require('../assets/bottomBar/Add.png')}
-                      style={styles.plusImage}
+                      style={[styles.plusImage, { tintColor: '#68AA64' }]}  // Green color
                       resizeMode="contain"
                     />
                   </Pressable>
@@ -203,7 +218,6 @@ export default function Layout() {
                     focused={focused}
                     activeSource={require('../assets/bottomBar/Bold/User.png')}
                     inactiveSource={require('../assets/bottomBar/Light/User.png')}
-                    activeScale={1.15}
                   />
                 ),
               }}

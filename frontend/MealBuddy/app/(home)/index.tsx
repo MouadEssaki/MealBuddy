@@ -28,12 +28,16 @@ const COLORS = {
 };
 
 export default function App() {
-  // Define selectedDate first so it’s available for fetching data
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
-
-  // Define the user, totalCalories, consumedCalories, and alimentAdded states  
-  const [user, setUser] = useState('mahmoud');
+  const [user, setUser] = useState({
+    username: 'mahmoud',
+    email: '',
+    avatar: '',
+    bio: '',
+    goal: '',
+    preferences: ''
+  });
   const [totalCalories, setTotalCalories] = useState(2500);
   const [consumedCalories, setConsumedCalories] = useState({
     breakfast: 0,
@@ -42,18 +46,43 @@ export default function App() {
   });
   const [alimentAdded, setAlimentAdded] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [macros, setMacros] = useState({
+    carbs: { consumed: 0, goal: 300 },
+    protein: { consumed: 0, goal: 150 },
+    fat: { consumed: 0, goal: 80 },
+  });
 
-  // Function to fetch meal plan for the selected date
+  const flameAnimation = new Animated.Value(0);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(flameAnimation, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(flameAnimation, {
+          toValue: 0,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const flameScale = flameAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.2],
+  });
+
   const fetchMealPlan = async () => {
     try {
       const mealPlan = await getMealPlan(selectedDate);
-
-      // Initialize macro totals
       let totalCarbs = 0;
       let totalProtein = 0;
       let totalFat = 0;
 
-      // Calculate calories and macros for each meal type
       const newConsumedCalories = {
         breakfast: mealPlan.meal?.Breakfast?.reduce((sum, item) => {
           totalCarbs += item.nutritional_info.carbs;
@@ -77,7 +106,6 @@ export default function App() {
         }, 0) || 0,
       };
 
-      // Update states
       setConsumedCalories(newConsumedCalories);
       setMacros(prev => ({
         ...prev,
@@ -85,7 +113,6 @@ export default function App() {
         protein: { ...prev.protein, consumed: Number(totalProtein.toFixed(1)) },
         fat: { ...prev.fat, consumed: Number(totalFat.toFixed(1)) },
       }));
-
     } catch (err) {
       console.error(err);
     }
@@ -98,7 +125,7 @@ export default function App() {
 
       if (!token || !userId) {
         console.log("Token ou ID utilisateur manquant");
-        setLoading(false); // Arrêter le chargement si les données manquent
+        setLoading(false);
         return;
       }
 
@@ -109,19 +136,14 @@ export default function App() {
           'Content-Type': 'application/json'
         }
       });
-      console.log("Réponse de l'API :", response);
 
       if (!response.ok) {
         console.log("Erreur lors de la récupération des données utilisateur :", response.status);
-        setLoading(false); // Arrêter le chargement en cas d'erreur
+        setLoading(false);
         return;
       }
 
       const data = await response.json();
-      console.log("Données utilisateur récupérées :", data);
-      setLoading(false); // Arrêter le chargement en cas d'erreur
-
-      // Mise à jour du state user avec les données spécifiques
       setUser({
         username: data.name,
         email: data.email,
@@ -130,88 +152,50 @@ export default function App() {
         goal: data.goal,
         preferences: data.preferences
       });
+      setLoading(false);
     } catch (error) {
       console.log("Erreur lors de la récupération des informations utilisateur :", error);
-      setLoading(false); // Arrêter le chargement en cas d'erreur
+      setLoading(false);
     }
   };
 
-
-  // Re-fetch the meal plan each time the screen gains focus,
-  // or when the selectedDate or alimentAdded state changes.
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
         await fetchMealPlan();
-        checkStreak({
-          totalCalories: totalCalories, // Your calorie goal
-          setStreak // Your state setter
-        });
+        checkStreak({ totalCalories, setStreak });
       };
       fetchData();
     }, [selectedDate, alimentAdded])
   );
 
   useEffect(() => {
-    checkStreak(selectedDate, totalCalories, setStreak);
     fetchUserInfo();
   }, []);
 
-  const [macros, setMacros] = useState({
-    carbs: { consumed: 0, goal: 300 },
-    protein: { consumed: 0, goal: 150 },
-    fat: { consumed: 0, goal: 80 },
-  });
-
-  // Calculate the total consumed calories and fill percentage
   const totalConsumed = Object.values(consumedCalories).reduce(
-    (sum, value) => sum + value,
-    0
+    (sum, value) => sum + value, 0
   );
 
-  // Calculate the fill percentage for the circular progress bar
   const fillPercentage = (totalConsumed / totalCalories) * 100;
 
-  // Function to navigate to the previous day
   const goToPreviousDay = () => {
     setSelectedDate(subDays(selectedDate, 1));
   };
 
-  // Function to navigate to the next day
   const goToNextDay = () => {
     setSelectedDate(addDays(selectedDate, 1));
   };
 
   const navigation = useNavigation();
 
-  // Function to handle meal press and navigate to the MealDetails screen
   const handleMealPress = (mealType: string) => {
-    // Pass the meal type and selectedDate to the MealDetails screen
     navigation.navigate('MealDetails', { mealType, date: selectedDate });
   };
-
-  // This function can be used after adding a new meal to toggle state and force a re-fetch
-  const handleAddAliment = () => {
-    setAlimentAdded((prev) => !prev);
-  };
-
-  // UI icons (if you use them later)
-  const StarIcon = (props) => <Icon name="star" {...props} />;
-  const ClockIcon = (props) => (
-    <Icon name="clock-outline" {...props} fill="#555" />
-  );
-  const PersonIcon = (props) => (
-    <Icon name="person-outline" {...props} fill="#555" />
-  );
-
-
-
-
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Header Section */}
         <LinearGradient
           colors={[COLORS.vert, '#1a7a4e']}
           style={styles.headerGradient}
@@ -230,14 +214,12 @@ export default function App() {
             <TouchableOpacity onPress={goToPreviousDay} style={styles.arrowButton}>
               <Icon name="chevron-left" size={28} color={COLORS.vert} />
             </TouchableOpacity>
-
             <Text style={styles.dateText}>
               {format(selectedDate, 'EEEE, MMM d')}
               {format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') && (
                 <Text style={{ color: COLORS.orange }}> (Today)</Text>
               )}
             </Text>
-
             <TouchableOpacity onPress={goToNextDay} style={styles.arrowButton}>
               <Icon name="chevron-right" size={28} color={COLORS.vert} />
             </TouchableOpacity>
@@ -250,7 +232,6 @@ export default function App() {
             <Text style={styles.calorieTitle}>Calorie Budget</Text>
             <Text style={styles.calorieTotal}>{totalCalories} kcal</Text>
           </View>
-
           <View style={styles.progressContainer}>
             <AnimatedCircularProgress
               size={220}
@@ -276,8 +257,6 @@ export default function App() {
               )}
             </AnimatedCircularProgress>
           </View>
-
-          {/* Meals Progress */}
           <View style={styles.mealsContainer}>
             {['Breakfast', 'Lunch', 'Dinner'].map((meal) => (
               <Pressable
@@ -311,7 +290,7 @@ export default function App() {
         <View style={styles.macrosCard}>
           <Text style={styles.sectionTitle}>Macronutrients</Text>
           <View style={styles.macrosGrid}>
-            {Object.entries(macros).map(([macro, data], index) => (
+            {Object.entries(macros).map(([macro, data]) => (
               <View key={macro} style={styles.macroItem}>
                 <AnimatedCircularProgress
                   size={80}
@@ -338,24 +317,48 @@ export default function App() {
           </View>
         </View>
 
-        {/* Streak & Recipes Sections */}
+        {/* Streak Section */}
         <View style={styles.streakCard}>
-          <Text style={styles.sectionTitle}>🔥 {streak} Day Streak!</Text>
-          <View style={styles.streakContent}>
-            {streak > 0 && (
-              <Text style={styles.streakText}>
-                You've met your calorie goal for {streak} consecutive days!
+          <LinearGradient
+            colors={['#FF6B6B', '#FF8E53']}
+            style={styles.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <View style={styles.streakHeader}>
+              <Animated.View style={[styles.flameContainer, { transform: [{ scale: flameScale }] }]}>
+                <Icon name="fire" size={36} color="#FFF4E4" style={styles.flameIcon} />
+                {streak > 3 && (
+                  <View style={styles.flameSparkles}>
+                    <Icon name="sparkles" size={16} color="#FFD700" style={styles.sparkle1} />
+                    <Icon name="sparkles" size={20} color="#FFD700" style={styles.sparkle2} />
+                  </View>
+                )}
+              </Animated.View>
+              <View>
+                <Text style={styles.streakTitle}>{streak}</Text>
+                <Text style={styles.streakSubtitle}>DAY STREAK</Text>
+              </View>
+            </View>
+            {streak > 0 ? (
+              <View style={styles.streakProgress}>
+                <View style={[styles.progressBar, { width: `${Math.min(streak * 10, 100)}%` }]} />
+                <Text style={styles.streakPhrase}>
+                  {streak >= 7 ? '🔥 Unstoppable! ' :
+                    streak >= 3 ? '🚀 Amazing! ' :
+                      '💪 Great start! '}
+                  Keep the fire burning!
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.noStreakText}>
+                Start your streak today! 🔥
               </Text>
             )}
-          </View>
+          </LinearGradient>
         </View>
-
-        <View style={styles.recipesCard}>
-          <Text style={styles.sectionTitle}>📈 Trending Recipes</Text>
-          {/* Add trending recipes here */}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </ScrollView >
+    </SafeAreaView >
   );
 }
 
@@ -490,9 +493,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     overflow: 'hidden',
   },
-  progressBar: {
-    height: '100%',
-  },
   macrosCard: {
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -533,17 +533,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
-  streakCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-  },
   recipesCard: {
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -553,5 +542,85 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
+  },
+  streakCard: {
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  gradient: {
+    padding: 20,
+  },
+  streakHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  flameContainer: {
+    position: 'relative',
+    marginRight: 15,
+  },
+  flameIcon: {
+    textShadowColor: 'rgba(255,107,107,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  flameSparkles: {
+    position: 'absolute',
+    top: -10,
+    left: -5,
+  },
+  sparkle1: {
+    position: 'absolute',
+    top: 5,
+    left: 25,
+    transform: [{ rotate: '-20deg' }],
+  },
+  sparkle2: {
+    position: 'absolute',
+    top: -5,
+    left: 10,
+    transform: [{ rotate: '15deg' }],
+  },
+  streakTitle: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#FFF4E4',
+    letterSpacing: -1,
+  },
+  streakSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,244,228,0.9)',
+    letterSpacing: 1,
+    marginTop: -5,
+  },
+  streakProgress: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 10,
+    padding: 12,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#FFF4E4',
+    borderRadius: 3,
+    marginBottom: 10,
+  },
+  streakPhrase: {
+    color: '#FFF4E4',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  noStreakText: {
+    color: '#FFF4E4',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingVertical: 8,
   },
 });
