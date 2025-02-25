@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Animated, Modal, View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import LoginRegister from '../composants/LoginRegister';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import AddMealOverlay from './Plus';
 
 const AnimatedTabIcon = ({
   focused,
@@ -42,6 +43,9 @@ export default function Layout() {
   const [currentUser, setCurrentUser] = useState(null);
   const slideAnimation = useRef(new Animated.Value(300)).current;
   const fadeAnimation = useRef(new Animated.Value(0)).current;
+
+  const [selectedMealType, setSelectedMealType] = useState(null);
+
 
 
 
@@ -82,6 +86,8 @@ export default function Layout() {
     });
   };
 
+
+
   const openOverlay = () => {
     setOverlayVisible(true);
     slideIn();
@@ -89,6 +95,7 @@ export default function Layout() {
 
   const closeOverlay = () => {
     slideOut();
+    setSelectedMealType(null);
   };
 
   const handleAuthSuccess = async (token) => {
@@ -210,8 +217,8 @@ export default function Layout() {
             <Pressable
               style={styles.modalButton}
               onPress={() => {
-                console.log('Matin pressed');
-                closeOverlay();
+                setSelectedMealType('Breakfast');
+                openOverlay();
               }}
             >
               <Text style={styles.buttonText}>Breakfast</Text>
@@ -221,8 +228,8 @@ export default function Layout() {
               <Pressable
                 style={styles.modalButton}
                 onPress={() => {
-                  console.log('Midi pressed');
-                  closeOverlay();
+                  setSelectedMealType('Lunch');
+                  openOverlay();
                 }}
               >
                 <Text style={styles.buttonText}>Lunch</Text>
@@ -231,8 +238,8 @@ export default function Layout() {
               <Pressable
                 style={styles.modalButton}
                 onPress={() => {
-                  console.log('Soir pressed');
-                  closeOverlay();
+                  setSelectedMealType('Dinner');
+                  openOverlay();
                 }}
               >
                 <Text style={styles.buttonText}>Dinner</Text>
@@ -245,6 +252,17 @@ export default function Layout() {
           </Animated.View>
         </Animated.View>
       </Modal>
+
+      <AddMealOverlay
+        visible={selectedMealType !== null}
+        onClose={(success) => {
+          setSelectedMealType(null);
+          //if (success) {
+          //
+          //}
+        }}
+        selectedMealType={selectedMealType}
+      />
     </>
   );
 }

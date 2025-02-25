@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { ApplicationProvider, Layout, Text, Card, Button, Icon } from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
 import { BarChart } from 'react-native-chart-kit';
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
         fontWeight: 'bold'
     },
-    loadingContainer: {
+     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center'

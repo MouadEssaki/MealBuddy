@@ -37,6 +37,19 @@ def get_meal_log_by_id(id):
     else:
         return jsonify({"error": "Meal not found"}), 404
 
+
+@meal_logs_bp.route("/MealLogs", methods=["GET"]) #l'appel se fait avec un param classique ( MealLogs?date=...) d'ou le request.args.get
+@token_required
+def get_meal_logs_by_date(user_id):
+    db = current_app.config['db']
+    date = request.args.get('date')
+    query = {"user_id": user_id}
+    if date:
+        query["date"] = date
+    logs = list(db.MealLogs.find(query))
+    logs = [{**log, "_id": str(log["_id"])} for log in logs]
+    return jsonify(logs)
+
 # Add a new meal log
 @meal_logs_bp.route("/MealLogs", methods=["POST"])
 def add_meal_log():
@@ -46,6 +59,20 @@ def add_meal_log():
         return jsonify({"error": "Required fields: nom, calories"}), 400
     result = db.MealLogs.insert_one(data)
     return jsonify({"message": "Meal added successfully", "id": str(result.inserted_id)}), 201
+
+#PATCH permet d'update sans avoir à tout envoyer (aka plus rapide)
+@meal_logs_bp.route("/MealLogs/<id>", methods=["PATCH"])
+@token_required
+def update_meal_log(user_id, id):
+    db = current_app.config['db']
+    data = request.get_json()
+    result = db.MealLogs.update_one(   #updateOne fait que si ya pas il créer (me semble)
+        {"_id": ObjectId(id), "user_id": user_id},
+        {"$push": {"meals": {"$each": data.get("meals", [])}}}  #le $push permet tt simplement d'ajouter à la liste
+    )
+    if result.modified_count > 0:
+        return jsonify({"message": "Meal log updated"})
+    return jsonify({"error": "Meal log not found"}), 404
 
 # Delete a meal log by its name
 @meal_logs_bp.route("/MealLogs/<nom>", methods=["DELETE"])
