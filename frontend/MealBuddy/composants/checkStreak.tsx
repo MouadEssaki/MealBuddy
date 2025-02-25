@@ -1,32 +1,46 @@
-import { subDays } from 'date-fns';
-import { getMealPlan } from '../database/personnalData'; // Adjust the import path as necessary
+// utilities/streaks.ts
+import { subDays, isBefore } from 'date-fns';
+import { getMealPlan } from '../database/personnalData';
 
-export const checkStreak = async (selectedDate, totalCalories, setStreak) => {
+interface StreakCheckParams {
+    totalCalories: number;
+    setStreak: React.Dispatch<React.SetStateAction<number>>;
+}
+
+export const checkStreak = async ({
+    totalCalories,
+    setStreak
+}: StreakCheckParams): Promise<void> => {
     let currentStreak = 0;
-    let currentDate = new Date(selectedDate);
-    let shouldContinue = true;
+    let currentDate = subDays(new Date(), 1); // Start from yesterday
+    let isValidDate = true;
 
-    while (shouldContinue) {
+    while (isValidDate) {
         try {
+            // Safety check: Don't process dates before 2000
+            if (isBefore(currentDate, new Date(2000, 0, 1))) {
+                isValidDate = false;
+                break;
+            }
+
             const mealPlan = await getMealPlan(currentDate);
+
             const totalConsumed = ['Breakfast', 'Lunch', 'Dinner'].reduce((sum, mealType) => {
                 const meals = mealPlan.meal?.[mealType] || [];
-                return sum + meals.reduce((mealSum, item) => mealSum + item.nutritional_info.calories, 0);
+                return sum + meals.reduce((mealSum, item) =>
+                    mealSum + (item.nutritional_info?.calories || 0), 0);
             }, 0);
 
             if (totalConsumed >= totalCalories) {
                 currentStreak++;
-                currentDate = subDays(currentDate, 1); // Check previous day
+                currentDate = subDays(currentDate, 1);
             } else {
-                shouldContinue = false;
+                isValidDate = false;
             }
         } catch (error) {
             console.error('Error checking streak:', error);
-            shouldContinue = false;
+            isValidDate = false;
         }
-
-        // Safety check to prevent infinite loops
-        if (currentStreak > 30) shouldContinue = false;
     }
 
     setStreak(currentStreak);

@@ -141,9 +141,14 @@ export default function App() {
   // or when the selectedDate or alimentAdded state changes.
   useFocusEffect(
     useCallback(() => {
-      fetchMealPlan();
-      checkStreak(selectedDate, totalCalories, setStreak);
-      console.log('Data re-fetched due to focus or state change');
+      const fetchData = async () => {
+        await fetchMealPlan();
+        checkStreak({
+          totalCalories: totalCalories, // Your calorie goal
+          setStreak // Your state setter
+        });
+      };
+      fetchData();
     }, [selectedDate, alimentAdded])
   );
 
