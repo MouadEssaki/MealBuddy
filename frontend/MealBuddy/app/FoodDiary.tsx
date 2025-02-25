@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { ApplicationProvider, Layout, Text, Card, Button, Icon } from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
 import { BarChart } from 'react-native-chart-kit';
 import { customTheme } from './customTheme'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const formatDate = (date) => date.toISOString().split('T')[0];
@@ -52,7 +53,38 @@ export default function FoodDiary() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [expandedMeals, setExpandedMeals] = useState([]);
+    const [mealLogs, setMealLogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
+
+    useEffect(() => {
+        const fetchMealLogs = async () => {
+            try {
+                const token = await AsyncStorage.getItem('authToken');
+                const response = await fetch(
+                    'https://mealbuddy-smartgroup2025.azurewebsites.net/api/MealLogs/current',
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error('Failed to fetch meal logs');
+
+                const data = await response.json();
+                setMealLogs(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMealLogs();
+    }, []);
+    /*
     // Sample data
     const meals = [
         {
@@ -72,7 +104,7 @@ export default function FoodDiary() {
         datasets: [{
             data: [meals[0].calories, meals[1].calories]  //donc possiblement itérer
         }]
-    };
+    };*/
 
     const handleMonthChange = (months) => {
         const newDate = new Date(currentDate);
@@ -84,6 +116,24 @@ export default function FoodDiary() {
         setExpandedMeals(prev =>
             prev.includes(mealId) ? prev.filter(id => id !== mealId) : [...prev, mealId]
         );
+    };
+
+    const processMeals = () => {
+        return mealLogs
+            .filter(log => log.date === formatDate(selectedDate))
+            .flatMap(log =>
+                log.meals.map((meal, index) => ({
+                    id: `${log._id}-${index}`,
+                    date: log.date,
+                    time: meal.time,
+                    items: meal.items,
+                    calories: meal.calories,
+                    nutrients: typeof meal.nutrients === 'string'
+                        ? JSON.parse(meal.nutrients)
+                        : meal.nutrients,
+                    isRecipe: !!meal.recipe_id
+                }))
+            );
     };
 
     const renderMealCard = (meal) => (
@@ -108,7 +158,7 @@ export default function FoodDiary() {
                     <View style={styles.mealDetails}>
                         <Text category='s2' style={styles.detailTitle}>Ingredients:</Text>
                         {meal.items.map((item, index) => (
-                            <Text key={index} style={styles.detailItem}>• {item}</Text>
+                            <Text key={index} style={styles.detailItem}>• {item.name} ({item.quanitity}g)</Text>
                         ))}
 
                         <View style={styles.nutritionGrid}>
@@ -123,6 +173,45 @@ export default function FoodDiary() {
 
     );
 
+    const generateChartData = () => {
+        const weekStart = new Date(currentDate);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+        const weekDays = Array(7).fill(0).map((_, i) => {
+            const date = new Date(weekStart);
+            date.setDate(date.getDate() + i);
+            return date;
+        });
+
+        const dailyCalories = weekDays.map(date => {
+            const logs = mealLogs.filter(log => log.date === formatDate(date));
+            return logs.reduce((sum, log) => sum + log.meals.reduce(
+                (mealSum, meal) => mealSum + meal.calories, 0
+            ), 0);
+        });
+
+        return {
+            labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            datasets: [{ data: dailyCalories }]
+        };
+    };
+
+    if (loading) {
+        return (
+            <Layout style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={customTheme.vert} />
+            </Layout>
+        );
+    }
+
+    if (error) {
+        return (
+            <Layout style={styles.errorContainer}>
+                <Text style={styles.errorText}>Error: {error}</Text>
+                <Button onPress={() => fetchMealLogs()}>Retry</Button>
+            </Layout>
+        );
+    }
     return (
         <ApplicationProvider {...eva} theme={{ ...eva.light, ...customTheme }}>
             <Layout style={styles.container}>
@@ -210,14 +299,14 @@ export default function FoodDiary() {
                         <Text category='h6' style={styles.sectionHeader}>
                             Repas du {formatDate(selectedDate)}
                         </Text>
-                        {meals.filter(meal => meal.date === formatDate(selectedDate)).map(renderMealCard)}
+                        {processMeals().map(renderMealCard)}
                     </ScrollView>
                 ) : (
                     <ScrollView contentContainerStyle={styles.statsContainer}>
                         <Card style={styles.chartCard}>
                             <Text category='h6' style={styles.chartTitle}>Calories Hebdomadaires</Text>
                             <BarChart
-                                data={chartData}
+                                data={generateChartData()}
                                 width={Dimensions.get('window').width - 32}
                                 height={220}
                                 yAxisSuffix="kcal"
@@ -438,6 +527,21 @@ const styles = StyleSheet.create({
         color: customTheme.vert,
         marginTop: 4,
         fontWeight: 'bold'
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20
+    },
+    errorText: {
+        color: 'red',
+        marginBottom: 20
     }
 });
 
