@@ -69,16 +69,7 @@ export default function RecipeLayout() {
                 name="CreateRecipe"
                 options={{
                     headerTitle: () => <HeaderTitle title="New Recipe" />,
-                    headerRight: () => (
-                        <Text style={{
-                            color: COLORS.orange,
-                            marginRight: 16,
-                            fontWeight: '600',
-                            fontSize: 16
-                        }}>
-                            Publish
-                        </Text>
-                    )
+
                 }}
             />
         </Stack>
