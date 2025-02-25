@@ -1,9 +1,8 @@
-// Login.jsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Login = ({ onAuthSuccess, toggleToRegister }) => {
+const Login = ({ onAuthSuccess, onSwitchToRegister }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
@@ -60,7 +59,7 @@ const Login = ({ onAuthSuccess, toggleToRegister }) => {
                 </View>
                 <Text style={styles.toggleText}>
                     Don't have an account?{' '}
-                    <Text style={styles.toggleLink} onPress={toggleToRegister}>
+                    <Text style={styles.toggleLink} onPress={onSwitchToRegister}>
                         Sign up
                     </Text>
                 </Text>
