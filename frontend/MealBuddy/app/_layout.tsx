@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, useNavigation } from 'expo-router';
 import { Animated, Modal, View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import LoginRegister from '../composants/LoginRegister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LottieView from 'lottie-react-native'; // Ajout de Lottie pour l'animation
-import AddMealOverlay from './Plus';
 
 const AnimatedTabIcon = ({
   focused,
@@ -43,7 +42,8 @@ export default function Layout() {
   const [isLoading, setIsLoading] = useState(true); // Nouvel état pour le chargement
   const slideAnimation = useRef(new Animated.Value(300)).current;
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const [selectedMealType, setSelectedMealType] = useState(null);
+  const navigation = useNavigation();
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     const checkAuthToken = async () => {
@@ -99,7 +99,6 @@ export default function Layout() {
 
   const closeOverlay = () => {
     slideOut();
-    setSelectedMealType(null);
   };
 
   const handleAuthSuccess = async (token) => {
@@ -234,12 +233,11 @@ export default function Layout() {
               style={styles.modalButton}
               onPress={() => {
                 console.log('Matin pressed');
+                const mealType = "Breakfast";
+                navigation.navigate('MealDetails', { mealType, date: selectedDate });
                 closeOverlay();
-                setSelectedMealType('Breakfast');
-                openOverlay();
               }}
             >
-
               <Text style={styles.buttonText}>Breakfast</Text>
               <Image source={require('../assets/bottomBar/Light/sunrise.png')} style={{ width: 30, height: 30 }} />
             </Pressable>
@@ -248,12 +246,11 @@ export default function Layout() {
                 style={styles.modalButton}
                 onPress={() => {
                   console.log('Midi pressed');
+                  const mealType = "Lunch";
+                  navigation.navigate('MealDetails', { mealType, date: selectedDate });
                   closeOverlay();
-                  setSelectedMealType('Lunch');
-                  openOverlay();
                 }}
               >
-
                 <Text style={styles.buttonText}>Lunch</Text>
                 <Image source={require('../assets/bottomBar/Light/sun.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
@@ -261,12 +258,11 @@ export default function Layout() {
                 style={styles.modalButton}
                 onPress={() => {
                   console.log('Soir pressed');
+                  const mealType = "Dinner";
+                  navigation.navigate('MealDetails', { mealType, date: selectedDate });
                   closeOverlay();
-                  setSelectedMealType('Dinner');
-                  openOverlay();
                 }}
               >
-
                 <Text style={styles.buttonText}>Dinner</Text>
                 <Image source={require('../assets/bottomBar/Light/sunset.png')} style={{ width: 30, height: 30 }} />
               </Pressable>
@@ -277,16 +273,6 @@ export default function Layout() {
           </Animated.View>
         </Animated.View>
       </Modal>
-      <AddMealOverlay
-        visible={selectedMealType !== null}
-        onClose={(success) => {
-          setSelectedMealType(null);
-          //if (success) {
-          //
-          //}
-        }}
-        selectedMealType={selectedMealType}
-      />
     </>
   );
 }

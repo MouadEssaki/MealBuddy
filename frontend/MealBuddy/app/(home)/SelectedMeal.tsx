@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { addMealItem } from '../../database/personnalData';
+import { StackActions } from '@react-navigation/native';
 
 const SelectedMeal = () => {
-    const { selectedMeal } = useLocalSearchParams();
+    const { selectedMeal, mealType, date } = useLocalSearchParams();
     const mealObj = JSON.parse(selectedMeal);
+    const selectedDate = date;
     const [selectedServing, setSelectedServing] = useState<'default' | 'custom'>('default');
     const [customAmount, setCustomAmount] = useState('');
     const [calculatedNutrition, setCalculatedNutrition] = useState(mealObj.nutritional_info);
@@ -14,6 +17,8 @@ const SelectedMeal = () => {
     // Extract default amount and unit from quantity_measurement (e.g., "100g" or "250ml")
     const defaultAmount = parseFloat(mealObj.quantity_measurement.match(/\d+/)[0]);
     const defaultUnit = mealObj.quantity_measurement.match(/[a-zA-Z]+/)[0]; // Extracts "g", "ml", etc.
+
+    const navigation = useNavigation();
 
     useEffect(() => {
         if (selectedServing === 'custom' && customAmount) {
@@ -38,13 +43,24 @@ const SelectedMeal = () => {
 
 
     const handleAddToDay = () => {
-        console.log('Adding to day:', {
+        // Determine the new quantity measurement based on serving type
+        const newQuantityMeasurement = selectedServing === 'default'
+            ? `${defaultAmount * servingMultiplier}${defaultUnit}`
+            : `${customAmount}${defaultUnit}`;
+
+        // Create the updated meal object with adjusted values
+        const updatedMeal = {
             ...mealObj,
             nutritional_info: calculatedNutrition,
-            actual_amount: selectedServing === 'custom' ? customAmount : defaultAmount,
-            unit: defaultUnit
+            quantity_measurement: newQuantityMeasurement,
+        };
+
+        // Pass the updated meal object to the database
+        addMealItem(selectedDate, mealType, updatedMeal).then(() => {
+            navigation.dispatch(StackActions.pop(2));
         });
     };
+
 
     // Group nutrients for better visual hierarchy
     const primaryNutrients = ['proteins', 'carbs', 'fats'];
@@ -139,7 +155,7 @@ const SelectedMeal = () => {
                     {secondaryNutrients.map((key) => (
                         <View key={key} style={styles.nutrientCard}>
                             <Text style={styles.nutrientValue}>
-                                {calculatedNutrition[key]}
+                                {Math.round(calculatedNutrition[key])} {/* Round the value */}
                                 <Text style={styles.nutrientUnit}>
                                     {['sodium', 'cholesterol'].includes(key) ? 'mg' : 'g'}
                                 </Text>

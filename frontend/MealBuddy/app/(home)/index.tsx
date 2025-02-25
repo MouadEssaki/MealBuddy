@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -15,7 +15,8 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getMealPlan } from '../../database/personnalData';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import { checkStreak } from '@/composants/checkStreak';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
   vertClaire: '#68AA64',
@@ -26,10 +27,10 @@ const COLORS = {
   grey: '#F5F5F5'
 };
 
-
 export default function App() {
   // Define selectedDate first so it’s available for fetching data
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
 
   // Define the user, totalCalories, consumedCalories, and alimentAdded states  
   const [user, setUser] = useState('mahmoud');
@@ -40,43 +41,121 @@ export default function App() {
     dinner: 0,
   });
   const [alimentAdded, setAlimentAdded] = useState(false);
+  const [streak, setStreak] = useState(0);
 
   // Function to fetch meal plan for the selected date
   const fetchMealPlan = async () => {
     try {
       const mealPlan = await getMealPlan(selectedDate);
-      console.log('Meal plan:', mealPlan);
+
+      // Initialize macro totals
+      let totalCarbs = 0;
+      let totalProtein = 0;
+      let totalFat = 0;
+
+      // Calculate calories and macros for each meal type
       const newConsumedCalories = {
-        breakfast: mealPlan.meal?.Breakfast
-          ? mealPlan.meal.Breakfast.reduce((sum, item) => sum + parseInt(item.calories, 10), 0)
-          : 0,
-        lunch: mealPlan.meal?.Lunch
-          ? mealPlan.meal.Lunch.reduce((sum, item) => sum + parseInt(item.calories, 10), 0)
-          : 0,
-        dinner: mealPlan.meal?.Dinner
-          ? mealPlan.meal.Dinner.reduce((sum, item) => sum + parseInt(item.calories, 10), 0)
-          : 0,
+        breakfast: mealPlan.meal?.Breakfast?.reduce((sum, item) => {
+          totalCarbs += item.nutritional_info.carbs;
+          totalProtein += item.nutritional_info.proteins;
+          totalFat += item.nutritional_info.fats;
+          return sum + item.nutritional_info.calories;
+        }, 0) || 0,
+
+        lunch: mealPlan.meal?.Lunch?.reduce((sum, item) => {
+          totalCarbs += item.nutritional_info.carbs;
+          totalProtein += item.nutritional_info.proteins;
+          totalFat += item.nutritional_info.fats;
+          return sum + item.nutritional_info.calories;
+        }, 0) || 0,
+
+        dinner: mealPlan.meal?.Dinner?.reduce((sum, item) => {
+          totalCarbs += item.nutritional_info.carbs;
+          totalProtein += item.nutritional_info.proteins;
+          totalFat += item.nutritional_info.fats;
+          return sum + item.nutritional_info.calories;
+        }, 0) || 0,
       };
-      console.log('Breakfast items:', mealPlan.meal?.Breakfast);
+
+      // Update states
       setConsumedCalories(newConsumedCalories);
+      setMacros(prev => ({
+        ...prev,
+        carbs: { ...prev.carbs, consumed: Number(totalCarbs.toFixed(1)) },
+        protein: { ...prev.protein, consumed: Number(totalProtein.toFixed(1)) },
+        fat: { ...prev.fat, consumed: Number(totalFat.toFixed(1)) },
+      }));
+
     } catch (err) {
       console.error(err);
     }
   };
+
+  const fetchUserInfo = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const userId = await AsyncStorage.getItem('currentUser');
+
+      if (!token || !userId) {
+        console.log("Token ou ID utilisateur manquant");
+        setLoading(false); // Arrêter le chargement si les données manquent
+        return;
+      }
+
+      const response = await fetch(`https://mealbuddy-smartgroup2025.azurewebsites.net/api/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log("Réponse de l'API :", response);
+
+      if (!response.ok) {
+        console.log("Erreur lors de la récupération des données utilisateur :", response.status);
+        setLoading(false); // Arrêter le chargement en cas d'erreur
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Données utilisateur récupérées :", data);
+      setLoading(false); // Arrêter le chargement en cas d'erreur
+
+      // Mise à jour du state user avec les données spécifiques
+      setUser({
+        username: data.name,
+        email: data.email,
+        avatar: data.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
+        bio: data.bio,
+        goal: data.goal,
+        preferences: data.preferences
+      });
+    } catch (error) {
+      console.log("Erreur lors de la récupération des informations utilisateur :", error);
+      setLoading(false); // Arrêter le chargement en cas d'erreur
+    }
+  };
+
 
   // Re-fetch the meal plan each time the screen gains focus,
   // or when the selectedDate or alimentAdded state changes.
   useFocusEffect(
     useCallback(() => {
       fetchMealPlan();
+      checkStreak(selectedDate, totalCalories, setStreak);
       console.log('Data re-fetched due to focus or state change');
     }, [selectedDate, alimentAdded])
   );
 
+  useEffect(() => {
+    checkStreak(selectedDate, totalCalories, setStreak);
+    fetchUserInfo();
+  }, []);
+
   const [macros, setMacros] = useState({
-    carbs: { consumed: 100, goal: 300 },
-    protein: { consumed: 50, goal: 150 },
-    fat: { consumed: 30, goal: 80 },
+    carbs: { consumed: 0, goal: 300 },
+    protein: { consumed: 0, goal: 150 },
+    fat: { consumed: 0, goal: 80 },
   });
 
   // Calculate the total consumed calories and fill percentage
@@ -97,7 +176,6 @@ export default function App() {
   const goToNextDay = () => {
     setSelectedDate(addDays(selectedDate, 1));
   };
-
 
   const navigation = useNavigation();
 
@@ -121,6 +199,10 @@ export default function App() {
     <Icon name="person-outline" {...props} fill="#555" />
   );
 
+
+
+
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -130,7 +212,11 @@ export default function App() {
           style={styles.headerGradient}
         >
           <Text style={styles.headerTitle}>Dashboard</Text>
-          <Text style={styles.greetingText}>Bonjour, {user} !</Text>
+          {loading ? (
+            <Text style={styles.greetingText}>Loading...</Text>
+          ) : (
+            <Text style={styles.greetingText}>Bonjour, {user.username} !</Text>
+          )}
         </LinearGradient>
 
         {/* Date Navigation */}
@@ -142,6 +228,9 @@ export default function App() {
 
             <Text style={styles.dateText}>
               {format(selectedDate, 'EEEE, MMM d')}
+              {format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') && (
+                <Text style={{ color: COLORS.orange }}> (Today)</Text>
+              )}
             </Text>
 
             <TouchableOpacity onPress={goToNextDay} style={styles.arrowButton}>
@@ -174,7 +263,9 @@ export default function App() {
                     <Text style={styles.calorieUnit}>kcal</Text>
                   </Text>
                   <Text style={styles.remainingCalories}>
-                    {totalCalories - totalConsumed} remaining
+                    {totalConsumed > totalCalories
+                      ? `${totalConsumed - totalCalories} kcal over`
+                      : `${totalCalories - totalConsumed} kcal remaining`}
                   </Text>
                 </View>
               )}
@@ -244,9 +335,13 @@ export default function App() {
 
         {/* Streak & Recipes Sections */}
         <View style={styles.streakCard}>
-          <Text style={styles.sectionTitle}>🔥 7 Day Streak!</Text>
+          <Text style={styles.sectionTitle}>🔥 {streak} Day Streak!</Text>
           <View style={styles.streakContent}>
-            {/* Add your streak visualization here */}
+            {streak > 0 && (
+              <Text style={styles.streakText}>
+                You've met your calorie goal for {streak} consecutive days!
+              </Text>
+            )}
           </View>
         </View>
 
