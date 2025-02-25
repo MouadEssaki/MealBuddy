@@ -1,27 +1,107 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
+import {
+    Text,
+    View,
+    TextInput,
+    TouchableOpacity,
+    ActivityIndicator,
+    StyleSheet,
+    ScrollView,
+    Image
+} from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const COLORS = {
+    vertClaire: '#68AA64',
+    vert: '#105F3B',
+    orange: '#E36820',
+    beige: '#FFF4E4',
+    white: '#FFFFFF',
+    background: '#F9F9F9'
+};
+
 
 export default function AddMeal() {
-    const { mealType, date } = useLocalSearchParams();
     const [research, setResearch] = useState('');
     const [meal, setMeal] = useState([]);
     const [filteredMeal, setFilteredMeal] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [advancedResearchLoading, setAdvancedResearchLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [stillNotThere, setStillNotThere] = useState(false);
+    const navigation = useNavigation();
+
     const apiPoint = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/foods";
+    const apiAdvancedResearch = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/utils/search_food";
 
     const fetchCurrentMealInDb = async () => {
         try {
             const response = await fetch(apiPoint);
             const data = await response.json();
-            setMeal(data);
-            setFilteredMeal(data);
+            // Assuming the API returns { results: "[...]" } or a direct array
+            const mealData = Array.isArray(data) ? data : JSON.parse(data.results || '[]');
+            setMeal(mealData);
+            setFilteredMeal(mealData);
         } catch (error) {
             console.error('Failed to fetch data:', error);
+            setError('Failed to load meals');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAdvancedResearch = async () => {
+        try {
+            setAdvancedResearchLoading(true);
+            const settings = {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ search_term: research }),
+            };
+            const response = await fetch(apiAdvancedResearch, settings);
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            const data = await response.json();
+            console.log('Advanced Research Response:', data);
+
+            // Handle the results string
+            let results = [];
+            if (data.results) {
+                // Replace single quotes with double quotes to fix invalid JSON
+                const cleanedResults = data.results.replace(/'/g, '"');
+                try {
+                    results = JSON.parse(cleanedResults);
+                    if (!Array.isArray(results)) {
+                        // If parsed result isn’t an array, wrap it in an array
+                        results = [results];
+                    }
+                } catch (parseError) {
+                    console.error('Failed to parse results:', parseError);
+                    results = []; // Fallback to empty array on parse failure
+                }
+            }
+
+            setFilteredMeal(results);
+            //add it to the meal array
+            setMeal([...meal, ...results]);
+            setStillNotThere(true);
+            if (results.length === 0) {
+                setError('No results found');
+            } else {
+                setError(null);
+            }
+        } catch (error) {
+            console.error('Failed to fetch advanced data:', error);
+            setError('Failed to fetch data');
+        } finally {
+            setAdvancedResearchLoading(false);
         }
     };
 
@@ -30,153 +110,308 @@ export default function AddMeal() {
     }, []);
 
     useEffect(() => {
+        setStillNotThere(false);
         if (research === '') {
             setFilteredMeal(meal);
         } else {
-            setFilteredMeal(meal.filter((item) => item.name.toLowerCase().startsWith(research.toLowerCase())));
+            const filtered = meal.filter((item) =>
+                item.name.toLowerCase().includes(research.toLowerCase())
+            );
+            setFilteredMeal(filtered);
         }
     }, [research]);
 
+    const handleMealDetails = (meal) => {
+        navigation.navigate('SelectedMeal', { selectedMeal: JSON.stringify(meal) });
+    };
+
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Search a meal:</Text>
-            <View style={styles.form}>
-                <View style={styles.searchContainer}>
-                    <Icon name="search" size={20} color="#A9A9A9" style={styles.searchIcon} />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Type to do a basic Research..."
-                        value={research}
-                        onChangeText={setResearch}
-                        placeholderTextColor={'#A9A9A9'}
-                    />
-                </View>
-                <TouchableOpacity style={styles.button} onPress={() => console.log('Advanced Research pressed')}>
-                    <Icon name="tune" size={20} color="white" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>Advanced Research</Text>
-                </TouchableOpacity>
+            <LinearGradient
+                colors={[COLORS.vert, '#1a7a4e']}
+                style={styles.header}
+            >
+                <Text style={styles.headerTitle}>Add New Meal</Text>
+                <Text style={styles.headerSubtitle}>Search our database or add custom items</Text>
+            </LinearGradient>
+
+            <View style={styles.searchContainer}>
+                <Icon name="search" size={24} color={COLORS.vert} style={styles.searchIcon} />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Search for meals..."
+                    placeholderTextColor="#999"
+                    value={research}
+                    onChangeText={setResearch}
+                    editable={!advancedResearchLoading}
+                />
             </View>
-            <ScrollView style={styles.outputDataView}>
+
+            <ScrollView contentContainerStyle={styles.contentContainer}>
                 {loading ? (
-                    <ActivityIndicator size="large" color="#68AA64" />
-                ) : filteredMeal.length === 0 ? (
-                    <Text style={styles.noResultsText}>
-                        Oops! It looks like we don’t have it in our database. Try Advanced Research.
-                    </Text>
-                ) : (
-                    filteredMeal.map((item, index) => (
-                        <View key={index} style={styles.outputData}>
-                            <Icon name="restaurant" size={24} color="#68AA64" style={styles.mealIcon} />
-                            <View style={styles.textContainer}>
-                                <Text style={styles.foodNameText}>{item.name}</Text>
-                                <View style={styles.nutritionalInfo}>
-                                    <Icon name="local-fire-department" size={20} color="#FF5733" />
-                                    <Text>{item.nutritional_info.calories} cal</Text>
-                                    <Icon name="scale" size={20} color="#3498db" />
-                                    <Text>{item.quantity_measurement}</Text>
-                                </View>
-                            </View>
+                    <View style={styles.loadingContainer}>
+                        <LottieView
+                            source={require('../../assets/searchAnim.json')}
+                            autoPlay
+                            loop
+                            style={styles.loadingAnimation}
+                        />
+                        <Text style={styles.loadingText}>Searching our database...</Text>
+                    </View>
+                ) : error ? (
+                    <View style={styles.errorContainer}>
+                        <Icon name="error-outline" size={40} color={COLORS.orange} />
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                ) :
+                    research === '' ? (
+                        <View style={styles.emptyState}>
+
+                            <Text style={styles.emptyTitle}>Start Searching</Text>
+                            <Text style={styles.emptyText}>Type the name of the meal you want to add</Text>
                         </View>
-                    ))
+                    ) :
+
+                        filteredMeal.length === 0 ? (
+                            <View style={styles.emptyState}>
+                                {/* <Image
+                            source={require('../../assets/empty-search.png')}
+                            style={styles.emptyImage}
+                        /> */}
+                                <Text style={styles.emptyTitle}>No Results Found</Text>
+                                <Text style={styles.emptyText}>Try adjusting your search or use advanced search</Text>
+                            </View>
+                        ) : (
+                            filteredMeal.map((item, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.mealCard}
+                                    onPress={() => handleMealDetails(item)}
+                                >
+                                    <View style={styles.mealHeader}>
+                                        <Icon name="restaurant" size={24} color={COLORS.vert} />
+                                        <Text style={styles.mealName}>{item.name}</Text>
+                                    </View>
+
+                                    <View style={styles.nutritionInfo}>
+                                        <View style={styles.nutritionItem}>
+                                            <Icon name="local-fire-department" size={18} color={COLORS.orange} />
+                                            <Text style={styles.nutritionText}>{item.nutritional_info.calories} cal</Text>
+                                        </View>
+                                        <View style={styles.nutritionItem}>
+                                            <Icon name="scale" size={18} color={COLORS.vert} />
+                                            <Text style={styles.nutritionText}>{item.quantity_measurement}</Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ))
+                        )}
+
+                {(filteredMeal.length === 0 && !loading) && (
+                    <TouchableOpacity
+                        style={styles.advancedButton}
+                        onPress={fetchAdvancedResearch}
+                        disabled={advancedResearchLoading}
+                    >
+                        <LinearGradient
+                            colors={[COLORS.orange, '#f05a1a']}
+                            style={styles.gradientButton}
+                        >
+                            {advancedResearchLoading ? (
+                                <ActivityIndicator size="small" color={COLORS.white} />
+                            ) : (
+                                <>
+                                    <Icon name="tune" size={20} color={COLORS.white} />
+                                    <Text style={styles.buttonText}>Advanced Search</Text>
+                                </>
+                            )}
+                        </LinearGradient>
+                    </TouchableOpacity>
+                )}
+
+                {stillNotThere && (
+                    <View style={styles.retryContainer}>
+                        <Text style={styles.retryText}>Still not finding what you need?</Text>
+                        <TouchableOpacity
+                            style={styles.advancedButton}
+                            onPress={fetchAdvancedResearch}
+                            disabled={advancedResearchLoading}
+                        >
+                            <LinearGradient
+                                colors={[COLORS.vert, '#1a7a4e']}
+                                style={styles.gradientButton}
+                            >
+                                {advancedResearchLoading ? (
+                                    <ActivityIndicator size="small" color={COLORS.white} />
+                                ) : (
+                                    <>
+                                        <Icon name="refresh" size={20} color={COLORS.white} />
+                                        <Text style={styles.buttonText}>Search Again</Text>
+                                    </>
+                                )}
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
                 )}
             </ScrollView>
-
         </View>
     );
 }
 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
-        marginTop: 25,
+        backgroundColor: COLORS.background,
     },
-    title: {
-        fontSize: 24,
-        marginBottom: 20,
-        color: '#68AA64',
-        fontWeight: '600',
+    header: {
+        paddingVertical: 30,
+        paddingHorizontal: 24,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
     },
-    form: {
-        width: '80%',
-        alignItems: 'center',
+    headerTitle: {
+        fontSize: 32,
+        fontWeight: '800',
+        color: COLORS.white,
+        marginBottom: 8,
+    },
+    headerSubtitle: {
+        fontSize: 16,
+        color: COLORS.beige,
+        opacity: 0.9,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1,
-        borderRadius: 10,
-        width: '100%',
-        backgroundColor: 'white',
-        borderColor: 'white',
-        paddingLeft: 10,
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        marginHorizontal: 24,
+        marginTop: -20,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 3,
     },
     searchIcon: {
-        marginRight: 5,
+        marginRight: 12,
     },
     input: {
         flex: 1,
-        padding: 10,
+        fontSize: 16,
+        color: COLORS.vert,
     },
-    button: {
+    contentContainer: {
+        paddingHorizontal: 24,
+        paddingTop: 24,
+        paddingBottom: 40,
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+    loadingAnimation: {
+        width: 200,
+        height: 200,
+    },
+    loadingText: {
+        fontSize: 16,
+        color: COLORS.vert,
+        marginTop: 20,
+    },
+    errorContainer: {
+        alignItems: 'center',
+        padding: 40,
+    },
+    errorText: {
+        fontSize: 16,
+        color: COLORS.orange,
+        marginTop: 20,
+        textAlign: 'center',
+    },
+    emptyState: {
+        alignItems: 'center',
+        padding: 40,
+    },
+    emptyImage: {
+        width: 120,
+        height: 120,
+        marginBottom: 20,
+    },
+    emptyTitle: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginBottom: 8,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+    },
+    mealCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        padding: 20,
+        marginBottom: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+    },
+    mealHeader: {
         flexDirection: 'row',
-        backgroundColor: '#68AA64',
-        padding: 10,
-        borderRadius: 10,
-        marginTop: 10,
-        width: '60%',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    mealName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginLeft: 12,
+        flex: 1,
+    },
+    nutritionInfo: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    nutritionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    nutritionText: {
+        fontSize: 14,
+        color: '#666',
+        marginLeft: 8,
+    },
+    advancedButton: {
+        borderRadius: 15,
+        overflow: 'hidden',
+        marginTop: 30,
+    },
+    gradientButton: {
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    buttonIcon: {
-        marginRight: 5,
+        paddingVertical: 16,
+        paddingHorizontal: 30,
     },
     buttonText: {
-        fontWeight: 'bold',
-        color: 'white',
-    },
-    outputDataView: {
-        width: '90%',
-        marginTop: 20,
-    },
-    outputData: {
-        marginBottom: 10,
-        padding: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        flexDirection: 'row',
-        alignItems: 'flex-start', // Aligns items to the top
-        shadowColor: "#000000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.15,
-        shadowRadius: 1.00,
-        elevation: 1,
-    },
-    textContainer: {
-        flex: 1, // Allows text container to take available space
-        flexDirection: 'column', // Stacks food name and nutritional info
-    },
-    foodNameText: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#105F3B',
-        flexWrap: 'wrap', // Allows text to wrap to new line
-    },
-    nutritionalInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        marginTop: 5, // Adds spacing between food name and nutritional info
-    },
-    mealIcon: {
-        marginRight: 10,
-    },
-    noResultsText: {
+        color: COLORS.white,
         fontSize: 16,
-        color: 'gray',
-        textAlign: 'center',
-        marginTop: 20,
-        paddingHorizontal: 20,
+        fontWeight: '600',
+        marginLeft: 12,
     },
-    
+    retryContainer: {
+        alignItems: 'center',
+        marginTop: 40,
+    },
+    retryText: {
+        fontSize: 16,
+        color: '#666',
+        marginBottom: 15,
+    },
 });

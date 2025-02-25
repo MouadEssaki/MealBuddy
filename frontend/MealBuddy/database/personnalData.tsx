@@ -114,3 +114,27 @@ export const deleteMealItem = async (
 
     await saveMealPlan(mealPlan);
 };
+
+
+//delete all data from all dates for log out
+export const deleteAllData = async () => {
+    try {
+        await AsyncStorage.clear();
+    } catch (error) {
+        console.error('Failed to delete all data:', error);
+    }
+};
+
+//TODO : import all data from mongodb database when login
+export const importAllData = async () => {
+    try {
+        const response = await fetch("https://mealbuddy-smartgroup2025.azurewebsites.net/api/mealplan");
+        const data = await response.json();
+        console.log(data);
+        for (let i = 0; i < data.length; i++) {
+            await AsyncStorage.setItem(data[i].date, JSON.stringify(data[i]));
+        }
+    } catch (error) {
+        console.error('Failed to import all data:', error);
+    }
+};

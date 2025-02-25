@@ -1,31 +1,37 @@
 import React, { useState, useCallback } from 'react';
 import {
-  IconRegistry,
-  ApplicationProvider,
-  Layout,
-  Text,
-  Icon,
-} from '@ui-kitten/components';
-import * as eva from '@eva-design/eva';
-import { EvaIconsPack } from '@ui-kitten/eva-icons';
-import { customTheme } from '../customTheme';
-import {
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Pressable,
+  Text,
+  SafeAreaView,
+  Animated
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { format, addDays, subDays } from 'date-fns';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { getMealPlan } from '../../database/personnalData'; // Adjust the import path if needed
+import { getMealPlan } from '../../database/personnalData';
+import { LinearGradient } from 'expo-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+
+const COLORS = {
+  vertClaire: '#68AA64',
+  vert: '#105F3B',
+  orange: '#E36820',
+  beige: '#FFF4E4',
+  white: '#FFFFFF',
+  grey: '#F5F5F5'
+};
+
 
 export default function App() {
   // Define selectedDate first so it’s available for fetching data
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  // Define the user, totalCalories, consumedCalories, and alimentAdded states  
   const [user, setUser] = useState('mahmoud');
   const [totalCalories, setTotalCalories] = useState(2500);
   const [consumedCalories, setConsumedCalories] = useState({
@@ -73,22 +79,29 @@ export default function App() {
     fat: { consumed: 30, goal: 80 },
   });
 
+  // Calculate the total consumed calories and fill percentage
   const totalConsumed = Object.values(consumedCalories).reduce(
     (sum, value) => sum + value,
     0
   );
+
+  // Calculate the fill percentage for the circular progress bar
   const fillPercentage = (totalConsumed / totalCalories) * 100;
 
+  // Function to navigate to the previous day
   const goToPreviousDay = () => {
     setSelectedDate(subDays(selectedDate, 1));
   };
 
+  // Function to navigate to the next day
   const goToNextDay = () => {
     setSelectedDate(addDays(selectedDate, 1));
   };
 
+
   const navigation = useNavigation();
 
+  // Function to handle meal press and navigate to the MealDetails screen
   const handleMealPress = (mealType: string) => {
     // Pass the meal type and selectedDate to the MealDetails screen
     navigation.navigate('MealDetails', { mealType, date: selectedDate });
@@ -109,285 +122,336 @@ export default function App() {
   );
 
   return (
-    <>
-      <SafeAreaView style={{ flex: 1 }}>
-        <IconRegistry icons={EvaIconsPack} />
-        <ApplicationProvider {...eva} theme={{ ...eva.light, ...customTheme }}>
-          <Layout style={{ flex: 1, backgroundColor: customTheme.fond }}>
-            <ScrollView
-              contentContainerStyle={{ padding: 20, alignItems: 'center' }}
-              showsVerticalScrollIndicator={false}
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Header Section */}
+        <LinearGradient
+          colors={[COLORS.vert, '#1a7a4e']}
+          style={styles.headerGradient}
+        >
+          <Text style={styles.headerTitle}>Dashboard</Text>
+          <Text style={styles.greetingText}>Bonjour, {user} !</Text>
+        </LinearGradient>
+
+        {/* Date Navigation */}
+        <View style={styles.dateCard}>
+          <View style={styles.dateContainer}>
+            <TouchableOpacity onPress={goToPreviousDay} style={styles.arrowButton}>
+              <Icon name="chevron-left" size={28} color={COLORS.vert} />
+            </TouchableOpacity>
+
+            <Text style={styles.dateText}>
+              {format(selectedDate, 'EEEE, MMM d')}
+            </Text>
+
+            <TouchableOpacity onPress={goToNextDay} style={styles.arrowButton}>
+              <Icon name="chevron-right" size={28} color={COLORS.vert} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Calorie Progress Card */}
+        <View style={styles.progressCard}>
+          <View style={styles.calorieHeader}>
+            <Text style={styles.calorieTitle}>Calorie Budget</Text>
+            <Text style={styles.calorieTotal}>{totalCalories} kcal</Text>
+          </View>
+
+          <View style={styles.progressContainer}>
+            <AnimatedCircularProgress
+              size={220}
+              width={18}
+              fill={fillPercentage}
+              tintColor={COLORS.vertClaire}
+              backgroundColor="#e8e8e8"
+              rotation={0}
+              lineCap="round"
             >
-              <View style={styles.headerContainer}>
-                <Text category="h1" style={styles.welcomeText}>
-                  Dashboard
-                </Text>
-                <Text category="h5" style={styles.welcomeText}>
-                  Bonjour, {user} !
-                </Text>
-              </View>
-
-              <View style={styles.cardContainer}>
-                <View style={styles.dateNavigation}>
-                  <TouchableOpacity onPress={goToPreviousDay}>
-                    <Text style={styles.arrow}>{'<'}</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.dateText}>
-                    {format(selectedDate, 'dd MMMM yyyy')}
+              {(fill) => (
+                <View style={styles.progressContent}>
+                  <Text style={styles.consumedCalories}>
+                    {Math.round(totalConsumed)}
+                    <Text style={styles.calorieUnit}>kcal</Text>
                   </Text>
-                  <TouchableOpacity onPress={goToNextDay}>
-                    <Text style={styles.arrow}>{'>'}</Text>
-                  </TouchableOpacity>
+                  <Text style={styles.remainingCalories}>
+                    {totalCalories - totalConsumed} remaining
+                  </Text>
                 </View>
+              )}
+            </AnimatedCircularProgress>
+          </View>
 
-                <Text category="h6" style={styles.budgetLabel}>
-                  Calorie Budget
+          {/* Meals Progress */}
+          <View style={styles.mealsContainer}>
+            {['Breakfast', 'Lunch', 'Dinner'].map((meal) => (
+              <Pressable
+                key={meal}
+                style={styles.mealCard}
+                onPress={() => handleMealPress(meal)}
+              >
+                <View style={styles.mealHeader}>
+                  <Icon
+                    name={meal === 'Breakfast' ? 'food-croissant' : meal === 'Lunch' ? 'food' : 'food-turkey'}
+                    size={24}
+                    color={COLORS.vert}
+                  />
+                  <Text style={styles.mealTitle}>{meal}</Text>
+                </View>
+                <Text style={styles.mealCalories}>
+                  {consumedCalories[meal.toLowerCase()]} kcal
                 </Text>
-                <Text style={styles.budgetValue}>{totalCalories}</Text>
+                <View style={styles.mealProgress}>
+                  <View style={[styles.progressBar, {
+                    width: `${(consumedCalories[meal.toLowerCase()] / (totalCalories / 3)) * 100}%`,
+                    backgroundColor: COLORS.vertClaire
+                  }]} />
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
 
+        {/* Macros Section */}
+        <View style={styles.macrosCard}>
+          <Text style={styles.sectionTitle}>Macronutrients</Text>
+          <View style={styles.macrosGrid}>
+            {Object.entries(macros).map(([macro, data], index) => (
+              <View key={macro} style={styles.macroItem}>
                 <AnimatedCircularProgress
-                  size={200}
-                  width={20}
-                  fill={fillPercentage}
-                  tintColor={customTheme.vertClaire}
-                  backgroundColor="#a9a9a940"
-                  rotation={0}
-                  lineCap="square"
-                  style={styles.arcProgress}
+                  size={80}
+                  width={6}
+                  fill={(data.consumed / data.goal) * 100}
+                  tintColor={
+                    macro === 'carbs' ? COLORS.orange :
+                      macro === 'protein' ? COLORS.vertClaire : COLORS.vert
+                  }
+                  backgroundColor="#f3f3f3"
                 >
                   {(fill) => (
-                    <View style={styles.progressContent}>
-                      <Text style={styles.consumedText}>
-                        {Math.round(totalConsumed)}
-                      </Text>
-                      <Text style={styles.remainingText}>
-                        {totalCalories - totalConsumed} left
-                      </Text>
-                    </View>
+                    <Text style={styles.macroValue}>
+                      {data.consumed}g
+                    </Text>
                   )}
                 </AnimatedCircularProgress>
-
-                <View style={styles.mealsContainer}>
-                  <Pressable
-                    onPress={() => handleMealPress('Breakfast')}
-                    style={styles.mealColumn}
-                  >
-                    <Text style={styles.mealTitle}>Breakfast</Text>
-                    <Text style={styles.mealValue}>
-                      {consumedCalories.breakfast}
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => handleMealPress('Lunch')}
-                    style={styles.mealColumn}
-                  >
-                    <Text style={styles.mealTitle}>Lunch</Text>
-                    <Text style={styles.mealValue}>
-                      {consumedCalories.lunch}
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => handleMealPress('Dinner')}
-                    style={styles.mealColumn}
-                  >
-                    <Text style={styles.mealTitle}>Dinner</Text>
-                    <Text style={styles.mealValue}>
-                      {consumedCalories.dinner}
-                    </Text>
-                  </Pressable>
-                </View>
-
-                <View style={styles.macrosContainer}>
-                  <View style={styles.macroColumn}>
-                    <Text style={styles.macroLabel}>Carbs</Text>
-                    <Text style={styles.macroValue}>
-                      {macros.carbs.consumed}g / {macros.carbs.goal}g
-                    </Text>
-                    <AnimatedCircularProgress
-                      size={50}
-                      width={5}
-                      fill={(macros.carbs.consumed / macros.carbs.goal) * 100}
-                      tintColor="#FFA726"
-                      backgroundColor="#a9a9a940"
-                    />
-                  </View>
-
-                  <View style={styles.macroColumn}>
-                    <Text style={styles.macroLabel}>Protein</Text>
-                    <Text style={styles.macroValue}>
-                      {macros.protein.consumed}g / {macros.protein.goal}g
-                    </Text>
-                    <AnimatedCircularProgress
-                      size={50}
-                      width={5}
-                      fill={(macros.protein.consumed / macros.protein.goal) * 100}
-                      tintColor="#66BB6A"
-                      backgroundColor="#a9a9a940"
-                    />
-                  </View>
-
-                  <View style={styles.macroColumn}>
-                    <Text style={styles.macroLabel}>Fat</Text>
-                    <Text style={styles.macroValue}>
-                      {macros.fat.consumed}g / {macros.fat.goal}g
-                    </Text>
-                    <AnimatedCircularProgress
-                      size={50}
-                      width={5}
-                      fill={(macros.fat.consumed / macros.fat.goal) * 100}
-                      tintColor="#EF5350"
-                      backgroundColor="#a9a9a940"
-                    />
-                  </View>
-                </View>
-              </View>
-
-              <View
-                style={{
-                  marginTop: 20,
-                  backgroundColor: 'white',
-                  padding: 10,
-                  borderRadius: 10,
-                  width: '100%',
-                }}
-              >
-                <Text>Your Streak!</Text>
-              </View>
-
-              <View
-                style={{
-                  marginTop: 20,
-                  backgroundColor: 'white',
-                  padding: 10,
-                  borderRadius: 10,
-                  width: '100%',
-                }}
-              >
-                <Text category="h5" style={{ marginBottom: 20 }}>
-                  Trending Recipes 📈
+                <Text style={styles.macroLabel}>
+                  {macro.charAt(0).toUpperCase() + macro.slice(1)}
                 </Text>
-                {/* Trending recipes section */}
+                <Text style={styles.macroGoal}>{data.goal}g goal</Text>
               </View>
-            </ScrollView>
-          </Layout>
-        </ApplicationProvider>
-      </SafeAreaView>
-    </>
+            ))}
+          </View>
+        </View>
+
+        {/* Streak & Recipes Sections */}
+        <View style={styles.streakCard}>
+          <Text style={styles.sectionTitle}>🔥 7 Day Streak!</Text>
+          <View style={styles.streakContent}>
+            {/* Add your streak visualization here */}
+          </View>
+        </View>
+
+        <View style={styles.recipesCard}>
+          <Text style={styles.sectionTitle}>📈 Trending Recipes</Text>
+          {/* Add trending recipes here */}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 10,
-    width: '100%',
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.beige,
   },
-  welcomeText: {
-    fontWeight: 'bold',
-    color: '#68AA64',
+  scrollContainer: {
+    paddingBottom: 40,
   },
-  cardContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: '100%',
+  headerGradient: {
+    paddingVertical: 30,
+    paddingHorizontal: 25,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: 30,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFF4E4',
+    marginBottom: 8,
+  },
+  greetingText: {
+    fontSize: 18,
+    color: '#FFF4E4',
+    opacity: 0.9,
+  },
+  dateCard: {
     backgroundColor: '#FFF4E4',
-    padding: 20,
-    borderRadius: 30,
-
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginTop: -10,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
-  dateNavigation: {
+  dateContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
-    marginBottom: 10,
+    justifyContent: 'space-between',
   },
-  arrow: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#68AA64',
-    padding: 1,
+  arrowButton: {
+    padding: 10,
   },
   dateText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontWeight: '600',
+    color: COLORS.vert,
   },
-  budgetLabel: {
+  progressCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    margin: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  calorieHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  calorieTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#68AA64',
-    marginBottom: 5,
+    fontWeight: '600',
+    color: COLORS.vert,
   },
-  budgetValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 15,
+  calorieTotal: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.orange,
   },
-  arcProgress: {
+  progressContainer: {
+    alignItems: 'center',
     marginVertical: 20,
   },
   progressContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  consumedText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#68AA64',
+  consumedCalories: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: COLORS.vert,
     textAlign: 'center',
   },
-  remainingText: {
+  calorieUnit: {
     fontSize: 16,
-    color: '#333333',
-    textAlign: 'center',
+    fontWeight: '500',
+    color: '#666',
+  },
+  remainingCalories: {
+    fontSize: 14,
+    color: '#666',
     marginTop: 5,
   },
   mealsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    gap: 10,
+    marginTop: 20,
   },
-  mealColumn: {
-    flex: 1,
+  mealCard: {
+    backgroundColor: '#FFF4E4',
+    borderRadius: 15,
+    padding: 16,
+    marginBottom: 12,
+  },
+  mealHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
+    gap: 10,
   },
   mealTitle: {
     fontSize: 16,
-    color: '#68AA64',
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: COLORS.vert,
   },
-  mealValue: {
-    fontSize: 18,
-    color: '#333333',
-    marginTop: 5,
+  mealCalories: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
   },
-  macrosContainer: {
-    marginTop: 20,
+  mealProgress: {
+    height: 4,
+    backgroundColor: '#eee',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+  },
+  macrosCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.vert,
+    marginBottom: 20,
+  },
+  macrosGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 10,
-    width: '100%',
+    gap: 15,
   },
-  macroColumn: {
+  macroItem: {
     alignItems: 'center',
     flex: 1,
   },
-  macroLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
   macroValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.vert,
+  },
+  macroLabel: {
     fontSize: 14,
-    color: '#333333',
-    marginVertical: 5,
+    color: '#666',
+    marginTop: 8,
+  },
+  macroGoal: {
+    fontSize: 12,
+    color: '#999',
+  },
+  streakCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  recipesCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
 });

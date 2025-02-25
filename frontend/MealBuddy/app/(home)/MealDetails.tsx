@@ -1,9 +1,28 @@
 import React, { useCallback, useState } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+    Text,
+    View,
+    StyleSheet,
+    TouchableOpacity,
+    SafeAreaView,
+    ScrollView,
+    Image,
+    ActivityIndicator
+} from 'react-native';
 import { useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
-import { getMealPlan, deleteMealItem } from '../../database/personnalData'; // Import deleteMealItem
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { getMealPlan, deleteMealItem } from '../../database/personnalData';
 import { format } from 'date-fns';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const COLORS = {
+    vertClaire: '#68AA64',
+    vert: '#105F3B',
+    orange: '#E36820',
+    beige: '#FFF4E4',
+    white: '#FFFFFF',
+    background: '#F9F9F9'
+};
 
 export default function MealDetails() {
     const { mealType, date } = useLocalSearchParams() as { mealType: string, date: string };
@@ -24,124 +43,192 @@ export default function MealDetails() {
         }
     };
 
-    // Re-fetch meal plan each time the screen gains focus
-    useFocusEffect(
-        useCallback(() => {
-            fetchMealPlan();
-        }, [mealType, date])
-    );
+    useFocusEffect(useCallback(() => { fetchMealPlan(); }, [mealType, date]));
 
-    const handleAddMeal = () => {
-        navigation.navigate('AddMeal', { mealType, date });
-    };
-
+    const handleAddMeal = () => navigation.navigate('AddMeal');
     const handleDelete = async (itemId: string) => {
         try {
             await deleteMealItem(date, mealType, itemId);
-            fetchMealPlan(); // Refresh the meal plan after deletion
+            fetchMealPlan();
         } catch (error) {
             console.error('Failed to delete meal item:', error);
         }
     };
 
     return (
-        <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
-            {loading && <Text>Loading...</Text>}
-            {error && <Text style={{ color: 'red' }}>{error}</Text>}
-            {!loading && !error && (
-                <View style={styles.cardContainer}>
-                    <View style={styles.boxCard}>
-                        <Text style={styles.title}>{mealType}</Text>
-                        <Text style={styles.subtitle}>{format(new Date(date), 'dd MMMM yyyy')}</Text>
-                    </View>
+        <SafeAreaView style={styles.container}>
+            <LinearGradient
+                colors={[COLORS.vert, '#1a7a4e']}
+                style={styles.header}
+            >
+                <Text style={styles.headerTitle}>{mealType}</Text>
+                <Text style={styles.dateText}>{format(new Date(date), 'EEEE, MMMM do')}</Text>
+            </LinearGradient>
 
-                    <View style={{ ...styles.boxCard, minHeight: 430, justifyContent: meal.length > 0 ? 'flex-start' : 'center' }}>
+            <ScrollView contentContainerStyle={styles.contentContainer}>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color={COLORS.vert} />
+                    </View>
+                ) : error ? (
+                    <Text style={styles.errorText}>{error}</Text>
+                ) : (
+                    <View style={styles.mealList}>
                         {meal.length > 0 ? (
                             meal.map((item, index) => (
-                                <View key={index} style={styles.mealItem}>
-                                    <Text style={styles.mealText}>{item.name}</Text>
-                                    <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                                        <Text style={styles.deleteText}>Delete</Text>
+                                <View key={index} style={styles.mealCard}>
+                                    <View style={styles.mealInfo}>
+                                        <Text style={styles.mealName}>{item.name}</Text>
+                                        <Text style={styles.mealDetails}>{item.calories} kcal • {item.quantity}</Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={() => handleDelete(item.id)}
+                                        style={styles.deleteButton}
+                                    >
+                                        <Icon name="trash-can-outline" size={20} color={COLORS.orange} />
                                     </TouchableOpacity>
                                 </View>
                             ))
                         ) : (
-                            <View style={{ alignItems: 'center' }}>
-                                <Text>It looks like you haven't eaten anything yet.</Text>
+                            <View style={styles.emptyState}>
+                                {/* <Image
+                                    source={require('../../assets/empty-plate.png')} // Add your empty state image
+                                    style={styles.emptyImage}
+                                /> */}
+                                <Text style={styles.emptyTitle}>No Items Added</Text>
+                                <Text style={styles.emptyText}>Start by adding your first meal item</Text>
                             </View>
                         )}
                     </View>
-                    <View style={{ width: "100%" }}>
-                        <TouchableOpacity onPress={handleAddMeal}>
-                            <Text style={styles.addButton}>Add a meal</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            )}
-        </View>
+                )}
+
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={handleAddMeal}
+                >
+                    <LinearGradient
+                        colors={[COLORS.orange, '#f05a1a']}
+                        style={styles.gradientButton}
+                    >
+                        <Icon name="plus" size={24} color={COLORS.white} />
+                        <Text style={styles.buttonText}>Add Meal Item</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    title: {
-        fontSize: 30,
-        fontWeight: 'bold',
-        color: '#68AA64',
+    container: {
+        flex: 1,
+        backgroundColor: COLORS.background,
     },
-    subtitle: {
-        fontSize: 24,
-        color: '#333',
+    header: {
+        paddingVertical: 30,
+        paddingHorizontal: 24,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
     },
-    boxCard: {
-        backgroundColor: 'white',
-        padding: 10,
-        borderRadius: 10,
-        width: "100%",
-        marginBottom: 10,
+    headerTitle: {
+        fontSize: 32,
+        fontWeight: '800',
+        color: COLORS.white,
+        marginBottom: 8,
     },
-    cardContainer: {
-        flexDirection: "column",
-        alignItems: "center",
-        width: "90%",
-        backgroundColor: '#FFF4E4',
-        padding: 20,
-        borderRadius: 30,
-        height: "95%",
+    dateText: {
+        fontSize: 18,
+        color: COLORS.beige,
+        opacity: 0.9,
     },
-    deleteText: {
-        color: 'white',
-        fontSize: 16,
-        backgroundColor: 'red',
-        padding: 5,
-        borderRadius: 5,
-        fontWeight: 'bold',
+    contentContainer: {
+        paddingHorizontal: 24,
+        paddingTop: 30,
+        paddingBottom: 40,
     },
-    mealItem: {
+    mealList: {
+        marginBottom: 30,
+    },
+    mealCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        backgroundColor: '#68AA64',
-        borderRadius: 10,
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        padding: 20,
+        marginBottom: 15,
         shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        marginVertical: 5,
+        shadowRadius: 10,
     },
-    mealText: {
-        color: 'white',
+    mealInfo: {
+        flex: 1,
+        marginRight: 15,
+    },
+    mealName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginBottom: 4,
+    },
+    mealDetails: {
+        fontSize: 14,
+        color: '#666',
+    },
+    deleteButton: {
+        padding: 10,
+    },
+    emptyState: {
+        alignItems: 'center',
+        padding: 40,
+    },
+    emptyImage: {
+        width: 120,
+        height: 120,
+        marginBottom: 20,
+    },
+    emptyTitle: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginBottom: 8,
+    },
+    emptyText: {
         fontSize: 16,
-        fontWeight: 'bold',
+        color: '#666',
+        textAlign: 'center',
     },
     addButton: {
-        backgroundColor: '#68AA64',
-        color: 'white',
-        padding: 10,
-        borderRadius: 10,
+        borderRadius: 20,
+        overflow: 'hidden',
+        shadowColor: COLORS.orange,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+    },
+    gradientButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 18,
+        paddingHorizontal: 30,
+    },
+    buttonText: {
+        color: COLORS.white,
+        fontSize: 18,
+        fontWeight: '700',
+        marginLeft: 12,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 50,
+    },
+    errorText: {
+        color: COLORS.orange,
+        fontSize: 16,
         textAlign: 'center',
-        fontSize: 20,
-        width: "100%",
+        marginVertical: 30,
     },
 });

@@ -1,201 +1,275 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, Image, Pressable, StyleSheet } from 'react-native';
-import { Input, Button, Icon, Text, Card } from '@ui-kitten/components';
-import { ApplicationProvider, Layout } from '@ui-kitten/components';
-import * as eva from '@eva-design/eva';
-import { customTheme } from '../customTheme';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+    View,
+    ScrollView,
+    Image,
+    Pressable,
+    StyleSheet,
+    TextInput,
+    Text,
+    TouchableOpacity,
+    SafeAreaView
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 
+const COLORS = {
+    vertClaire: '#68AA64',
+    vert: '#105F3B',
+    orange: '#E36820',
+    beige: '#FFF4E4',
+    white: '#FFFFFF',
+    background: '#F9F9F9'
+};
 
-export default function App() {
-    const SearchIcon = (props) => <Icon name='search-outline' {...props} />;
-    const StarIcon = (props) => <Icon name='star' {...props} />;
-    const ClockIcon = (props) => <Icon name='clock-outline' {...props} fill="#555" />;
-    const PersonIcon = (props) => <Icon name='person-outline' {...props} fill="#555" />;
-    const CreateIcon = (props) => <Icon name='plus-outline' {...props} fill="#FFFFFF" />;
-
-    const [recipesData, setrecipesData] = useState([]);
+export default function RecipesScreen() {
+    const [recipesData, setRecipesData] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredRecipes, setFilteredRecipes] = useState([]);
     const navigation = useNavigation();
 
-    // Fetch data from API
     useEffect(() => {
         fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/recipes')
             .then(response => response.json())
-            .then(data => {
-                setrecipesData(data);
-            });
+            .then(data => setRecipesData(data));
     }, []);
-
 
     useEffect(() => {
         setFilteredRecipes(
-            recipesData.filter((recipe) =>
+            recipesData.filter(recipe =>
                 recipe.title.toLowerCase().includes(searchQuery.toLowerCase())
             )
         );
-    }, [searchQuery]);
+    }, [searchQuery, recipesData]);
 
-    const handleRecipePress = (recipe: string) => {
-        navigation.navigate('RecipesDetails', { recipe });
+    const handleRecipePress = (recipeId: string) => {
+        navigation.navigate('RecipesDetails', { recipe: recipeId });
     };
 
-   const fetchRecipes = () => {
+    const fetchRecipes = () => {
         fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/recipes')
             .then(response => response.json())
-            .then(data => {
-                setrecipesData(data);
-            });
+            .then(data => setRecipesData(data));
     };
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchRecipes();
-        }
-            , [searchQuery])
-    );
+    useFocusEffect(useCallback(() => { fetchRecipes(); }, [searchQuery]));
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <ApplicationProvider {...eva} theme={{ ...eva.light, ...customTheme }}>
-                <Layout style={{ flex: 1, backgroundColor: customTheme.fond }}>
-                    <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
-                        <Text category='h5' style={{ color: customTheme.vertClaire, fontWeight: 'bold' }}  >Recipes</Text>
+        <SafeAreaView style={styles.container}>
+            <LinearGradient
+                colors={[COLORS.vert, '#1a7a4e']}
+                style={styles.header}
+            >
+                <Text style={styles.headerTitle}>Discover Recipes</Text>
 
+                {/* Search Input */}
+                <View style={styles.searchContainer}>
+                    <Icon name="magnify" size={24} color="#999" style={styles.searchIcon} />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search recipes..."
+                        placeholderTextColor="#999"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                </View>
+            </LinearGradient>
 
-                        {/* Search Input */}
-                        <Input
-                            accessoryLeft={SearchIcon}
-                            style={{
-                                marginTop: 20,
-                                height: 60,
-                                width: '90%',
-                                borderRadius: 30,
-                                paddingLeft: 20,
-                                backgroundColor: "#FFFFFF",
-                                borderColor: 'transparent',
-                                fontSize: 16,
+            {/* Content Container */}
+            <ScrollView
+                contentContainerStyle={styles.contentContainer}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Create Recipe Button */}
+                <TouchableOpacity
+                    style={styles.createButton}
+                    onPress={() => navigation.navigate('CreateRecipe')}
+                >
+                    <LinearGradient
+                        colors={[COLORS.orange, '#f05a1a']}
+                        style={styles.gradientButton}
+                    >
+                        <Icon name="plus" size={24} color={COLORS.white} />
+                        <Text style={styles.buttonText}>Create Recipe</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
 
-                            }}
-                            textStyle={{
-                                color: '#333333',
-                            }}
-                            placeholder="Search for a recipe"
-                            placeholderTextColor="#999999"
-                            value={searchQuery}
-                            onChangeText={nextValue => setSearchQuery(nextValue)}
-                        />
-
-                        <Button
-                            accessoryLeft={CreateIcon}
-                            onPress={() => navigation.navigate('CreateRecipe')}
-                            style={{
-                                marginBottom: 10,
-                                borderColor: 'transparent',
-                                borderRadius: 20,
-                                backgroundColor: "#4CAF50",
-                                paddingVertical: 15,
-                                paddingHorizontal: 20,
-                                shadowColor: '#000',
-                                shadowOffset: {
-                                    width: 0,
-                                    height: 2,
-                                },
-                                shadowOpacity: 0.2,
-                                shadowRadius: 3,
-                                elevation: 4,
-                            }}
-                            textStyle={{
-                                color: '#FFFFFF',
-                                fontSize: 18,
-                                fontWeight: 'bold',
-                            }}
+                {/* Recipes Grid */}
+                <View style={styles.recipesGrid}>
+                    {(searchQuery.length === 0 ? recipesData : filteredRecipes).map(recipe => (
+                        <Pressable
+                            key={recipe._id}
+                            style={styles.recipeCard}
+                            onPress={() => handleRecipePress(recipe._id)}
                         >
-                            <Text>Create a recipe</Text>
-                        </Button>
+                            <Image
+                                source={{ uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(recipe.title)}` }}
+                                style={styles.recipeImage}
+                            />
 
+                            <View style={styles.recipeContent}>
+                                <Text style={styles.recipeTitle}>{recipe.title}</Text>
 
-
-                        {/* ScrollView for displaying the recipes */}
-                        <ScrollView style={{ width: '100%' }}>
-                            {(searchQuery.length == 0 ? recipesData : filteredRecipes).map((recipe) => (
-                                <View key={recipe._id} style={{
-                                    marginRight: 20,
-                                    marginLeft: 20,
-                                    marginBottom: 30,
-                                    backgroundColor: 'transparent', // This is important
-                                }}>
-                                    <View style={{
-                                        backgroundColor: "#FFF4E4",
-                                        borderRadius: 10,
-                                        shadowColor: "#636363",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.2,
-                                        shadowRadius: 2,
-                                        elevation: 3,
-                                    }}>
-                                        <Image
-                                            source={{
-                                                uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(recipe.title)}`,
-                                            }}
-                                            style={{
-                                                width: '100%',
-                                                height: 200,
-                                                borderTopLeftRadius: 10,
-                                                borderTopRightRadius: 10,
-                                            }}
-                                            resizeMode="cover"
-                                        />
-                                        <View style={{ padding: 10 }}>
-                                            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
-                                                <ClockIcon style={{ width: 16, height: 16 }} />
-                                                <Text style={{ marginLeft: 5, fontSize: 12 }}>{recipe.steps ? recipe.steps.length : 0} steps</Text>
-                                                <PersonIcon style={{ width: 16, height: 16, marginLeft: 10 }} />
-                                                <Text style={{ marginLeft: 5, fontSize: 12 }}>{recipe.ingredients.length} ingredients</Text>
-                                                <View style={{ flexDirection: "row", marginLeft: 'auto' }}>
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <StarIcon
-                                                            key={i}
-                                                            style={{
-                                                                width: 16,
-                                                                height: 16,
-                                                                marginRight: 3,
-                                                            }}
-                                                            fill={i < 3 ? "#FFD700" : "#E0E0E0"} // Example: 3 stars for this recipe
-                                                        />
-                                                    ))}
-                                                </View>
-                                            </View>
-
-                                            <Text category='h6' style={{ fontWeight: 'bold' }}>{recipe.title}</Text>
-
-                                            <Button
-                                                onPress={() => handleRecipePress(recipe._id)}
-                                                style={{
-                                                    marginTop: 10,
-                                                    borderColor: 'transparent',
-                                                    borderRadius: 20,
-                                                    backgroundColor: "#E36820"
-                                                }}
-                                                textStyle={{
-                                                    color: '#FFFFFF',
-                                                    fontSize: 16,
-                                                }}
-                                            >
-                                                <Text>View Recipe</Text>
-                                            </Button>
-
-                                        </View>
+                                <View style={styles.metaContainer}>
+                                    <View style={styles.metaItem}>
+                                        <Icon name="clock-outline" size={14} color={COLORS.vert} />
+                                        <Text style={styles.metaText}>{recipe.steps?.length || 0} steps</Text>
+                                    </View>
+                                    <View style={styles.metaItem}>
+                                        <Icon name="food-apple" size={14} color={COLORS.vert} />
+                                        <Text style={styles.metaText}>{recipe.ingredients.length} ingredients</Text>
                                     </View>
                                 </View>
-                            ))}
-                        </ScrollView>
-                    </View>
-                </Layout>
-            </ApplicationProvider>
+
+                                <View style={styles.ratingContainer}>
+                                    {[...Array(5)].map((_, i) => (
+                                        <Icon
+                                            key={i}
+                                            name="star"
+                                            size={16}
+                                            color={i < 3 ? COLORS.orange : '#ddd'}
+                                        />
+                                    ))}
+                                </View>
+
+                                <View style={styles.viewButton}>
+                                    <Text style={styles.viewButtonText}>View Recipe</Text>
+                                    <Icon name="arrow-right" size={16} color={COLORS.white} />
+                                </View>
+                            </View>
+                        </Pressable>
+                    ))}
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: COLORS.background,
+    },
+    header: {
+        paddingHorizontal: 24,
+        paddingTop: 40,
+        paddingBottom: 30,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+    },
+    headerTitle: {
+        fontSize: 23,
+        fontWeight: '800',
+        color: COLORS.white,
+        marginBottom: 25,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.white,
+        borderRadius: 30,
+        paddingHorizontal: 20,
+        height: 56,
+    },
+    searchIcon: {
+        marginRight: 12,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        color: COLORS.vert,
+        height: '100%',
+    },
+    contentContainer: {
+        paddingHorizontal: 24,
+        paddingTop: 30,
+        paddingBottom: 40,
+    },
+    createButton: {
+        borderRadius: 20,
+        overflow: 'hidden',
+        marginBottom: 30,
+        shadowColor: COLORS.orange,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+    },
+    gradientButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 18,
+        paddingHorizontal: 30,
+    },
+    buttonText: {
+        color: COLORS.white,
+        fontSize: 18,
+        fontWeight: '700',
+        marginLeft: 12,
+    },
+    recipesGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    recipeCard: {
+        width: '100%',
+        backgroundColor: COLORS.white,
+        borderRadius: 20,
+        marginBottom: 25,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+    },
+    recipeImage: {
+        width: '100%',
+        height: 200,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    recipeContent: {
+        padding: 20,
+    },
+    recipeTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: COLORS.vert,
+        marginBottom: 15,
+    },
+    metaContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 15,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    metaText: {
+        fontSize: 14,
+        color: COLORS.vert,
+        marginLeft: 8,
+    },
+    ratingContainer: {
+        flexDirection: 'row',
+        marginBottom: 20,
+    },
+    viewButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.vert,
+        borderRadius: 15,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+    },
+    viewButtonText: {
+        color: COLORS.white,
+        fontSize: 16,
+        fontWeight: '600',
+        marginRight: 10,
+    },
+});
