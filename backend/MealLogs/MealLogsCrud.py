@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app, Response
 from bson import ObjectId
+from ..Users.UsersCrud import token_required
 
 # Create a Blueprint for meal logs
 meal_logs_bp = Blueprint('meal_logs', __name__, url_prefix='/api')
@@ -14,6 +15,14 @@ def get_meal_logs():
     db = current_app.config['db']
     logs = list(db.MealLogs.find())  # Fetch all logs from the MealLogs collection
     # Convert ObjectId to string manually
+    logs = [{**log, "_id": str(log["_id"])} for log in logs]
+    return jsonify(logs)
+
+@meal_logs_bp.route("/MealLogs/current", methods=["GET"])
+@token_required
+def get_user_meal_logs(user_id):
+    db = current_app.config['db']
+    logs = list(db.MealLogs.find({"user_id": user_id}))
     logs = [{**log, "_id": str(log["_id"])} for log in logs]
     return jsonify(logs)
 
