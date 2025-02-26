@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Image, ActivityIndicator, TouchableOpacity, Animated, ScrollView } from "react-native";
+import { View, Image, ActivityIndicator, TouchableOpacity, Animated, StyleSheet } from "react-native";
 import { ApplicationProvider, Layout, Text, Button } from "@ui-kitten/components";
 import * as eva from "@eva-design/eva";
 import { customTheme } from "../customTheme";
@@ -11,6 +11,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Updates from "expo-updates";
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import { checkStreak } from '@/composants/checkStreak';
+import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
+
+
 
 
 
@@ -18,11 +22,16 @@ export default function Profile() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const fadeAnim = useState(new Animated.Value(0))[0];
+    const [streak, setStreak] = useState(0);
+    const [totalCalories, setTotalCalories] = useState(2500);
+
 
     const navigation = useNavigation();
 
     useEffect(() => {
         fetchUserInfo();
+        checkStreak({ totalCalories, setStreak });
+
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 800,
@@ -84,7 +93,7 @@ export default function Profile() {
         await Updates.reloadAsync(); // Recharge toute l'application
     };
 
-    
+
     if (loading) {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -92,6 +101,14 @@ export default function Profile() {
             </SafeAreaView>
         );
     }
+
+    const flameAnimation = new Animated.Value(0);
+
+    const flameScale = flameAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 1.2],
+    });
+
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -209,9 +226,121 @@ export default function Profile() {
                                 </View>
                             </View>
                         </View>
+                        {/* Streak Section */}
+                        <View style={styles.streakCard}>
+                            <LinearGradient
+                                colors={['#FF6B6B', '#FF8E53']}
+                                style={styles.gradient}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                            >
+                                <View style={styles.streakHeader}>
+                                    <Animated.View style={[styles.flameContainer, { transform: [{ scale: flameScale }] }]}>
+                                        <Icon2 name="fire" size={36} color="#FFF4E4" style={styles.flameIcon} />
+                                        {streak > 3 && (
+                                            <View style={styles.flameSparkles}>
+                                                <Icon2 name="sparkles" size={16} color="#FFD700" style={styles.sparkle1} />
+                                                <Icon2 name="sparkles" size={20} color="#FFD700" style={styles.sparkle2} />
+                                            </View>
+                                        )}
+                                    </Animated.View>
+                                    <View>
+                                        <Text style={styles.streakTitle}>{streak}</Text>
+                                        <Text style={styles.streakSubtitle}>DAY STREAK</Text>
+                                    </View>
+                                </View>
+                                {streak > 0 ? (
+                                    <View style={styles.streakProgress}>
+                                        <View style={[styles.progressBar, { width: `${Math.min(streak * 10, 100)}%` }]} />
+                                        <Text style={styles.streakPhrase}>
+                                            {streak >= 7 ? '🔥 Unstoppable! ' :
+                                                streak >= 3 ? '🚀 Amazing! ' :
+                                                    '💪 Great start! '}
+                                            Keep the fire burning!
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text style={styles.noStreakText}>
+                                        Start your streak today! 🔥
+                                    </Text>
+                                )}
+                            </LinearGradient>
+                        </View>
+
                     </Layout>
                 </Animated.View>
             </ApplicationProvider>
         </SafeAreaView >
     );
 }
+
+const styles = StyleSheet.create({
+    streakCard: {
+        backgroundColor: '#FFF4E4',
+        borderRadius: 20,
+        padding: 20,
+        marginTop: 20,
+
+    },
+    gradient: {
+        paddingVertical: 20,
+        paddingHorizontal: 25,
+        borderRadius: 20,
+    },
+    streakHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    flameContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    flameIcon: {
+        marginRight: 10,
+    },
+    flameSparkles: {
+        flexDirection: 'row',
+    },
+    sparkle1: {
+        marginRight: 5,
+    },
+    sparkle2: {
+        marginLeft: 5,
+    },
+    streakTitle: {
+        fontSize: 36,
+        fontWeight: '800',
+        color: '#FFF4E4',
+    },
+    streakSubtitle: {
+        fontSize: 14,
+        fontWeight: '400',
+        color: '#FFF4E4',
+    },
+    streakProgress: {
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    progressBar: {
+        height: 8,
+        backgroundColor: '#FF6B6B',
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    streakPhrase: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FFF4E4',
+        textAlign: 'center',
+    },
+    noStreakText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FFF4E4',
+        textAlign: 'center',
+        marginTop: 20,
+    },
+
+
+})
