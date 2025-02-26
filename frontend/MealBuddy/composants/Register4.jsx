@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, TextInput, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FOOD_COLORS = {
     vertClaire: "#68AA64",
@@ -54,31 +55,76 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
 
     const [isLoading, setIsLoading] = useState(false);
 
+
+    const handleAuthSuccess = async (token, id) => {
+        try {
+            await AsyncStorage.setItem('authToken', token);
+            await AsyncStorage.setItem('currentUser', id.toString()); // Ensure id is a string
+            console.log('Authentication successful: Token stored in AsyncStorage');
+            onAuthSuccess(token);
+        } catch (error) {
+            console.error('Error storing token in AsyncStorage:', error);
+        }
+    };
+
+
     const handleSubmit = async () => {
         if (isLoading) return; // Prevent multiple clicks
         setIsLoading(true);
+
         try {
-            const response = await fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/users', {
+            // Register the user
+            const registerResponse = await fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, preferences }),
             });
-            const data = await response.json();
-            console.log('Server response:', data);
-            if (response.ok) {
-                const token = data.token;
-                if (token) {
-                    onAuthSuccess(token);
+            const registerData = await registerResponse.json();
+            console.log('Registration response:', registerData);
+
+            if (registerResponse.ok) {
+                // Auto-login after registration
+                const loginBody = JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                });
+                console.log('Login request body:', loginBody);
+
+                const loginResponse = await fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: loginBody,
+                });
+                const loginData = await loginResponse.json();
+                console.log('Login response:', loginData);
+
+                if (loginResponse.ok) {
+                    if (loginData.token && loginData.user) {
+                        try {
+                            await AsyncStorage.setItem('rememberedEmail', formData.email);
+                            await AsyncStorage.setItem('rememberedPassword', formData.password);
+                            console.log('Credentials saved to AsyncStorage');
+                        } catch (error) {
+                            console.error('AsyncStorage save error:', error);
+                            alert('Failed to save credentials.');
+                        }
+                        console.log('Login successful:', loginData);
+                        await handleAuthSuccess(loginData.token, loginData.user._id); // Changed from .id to ._id
+                    } else {
+                        console.error('No token or user in login response');
+                        alert('Registration succeeded, but login failed: No token or user data received.');
+                    }
                 } else {
-                    console.error('No token in response');
-                    alert('Registration succeeded, but no token was received.');
+                    console.error('Login failed:', loginData.error);
+                    alert(`Login failed: ${loginData.error || 'Unknown error'}`);
                 }
             } else {
-                alert(data.error || 'Registration failed.');
+                console.error('Registration failed:', registerData.error);
+                alert(`Registration failed: ${registerData.error || 'Unknown error'}`);
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('A connection error occurred.');
+            console.error('Network error:', error);
+            alert('A connection error occurred. Please check your network.');
         } finally {
             setIsLoading(false);
         }

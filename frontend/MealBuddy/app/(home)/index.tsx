@@ -10,7 +10,7 @@ import {
   Animated
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, set } from 'date-fns';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getMealPlan } from '../../database/personnalData';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,14 +31,24 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({
-    username: 'mahmoud',
+    username: '',
     email: '',
     avatar: '',
     bio: '',
     goal: '',
-    preferences: ''
+    preferences: '',
+    age: '',
+    height: '',
+    weight: '',
+    gender: '',
+    activityLevel: '',
+    nutritionalGoals: {
+      calories: '',
+      protein: '',
+      carbs: '',
+      fats: ''
+    }
   });
-  const [totalCalories, setTotalCalories] = useState(2500);
   const [consumedCalories, setConsumedCalories] = useState({
     breakfast: 0,
     lunch: 0,
@@ -46,6 +56,7 @@ export default function App() {
   });
   const [alimentAdded, setAlimentAdded] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [totalCalories, setTotalCalories] = useState(2500);
   const [macros, setMacros] = useState({
     carbs: { consumed: 0, goal: 300 },
     protein: { consumed: 0, goal: 150 },
@@ -122,13 +133,16 @@ export default function App() {
     try {
       const token = await AsyncStorage.getItem('authToken');
       const userId = await AsyncStorage.getItem('currentUser');
-
+  
       if (!token || !userId) {
-        console.log("Token ou ID utilisateur manquant");
+        console.log("Token or user ID missing");
         setLoading(false);
         return;
       }
 
+      console.log("Token:", token);
+      console.log("User ID:", userId);  
+  
       const response = await fetch(`https://mealbuddy-smartgroup2025.azurewebsites.net/api/users/${userId}`, {
         method: 'GET',
         headers: {
@@ -136,25 +150,47 @@ export default function App() {
           'Content-Type': 'application/json'
         }
       });
-
+  
       if (!response.ok) {
-        console.log("Erreur lors de la récupération des données utilisateur :", response.status);
+        console.log("Error fetching user data:", response.status, await response.text());
         setLoading(false);
         return;
       }
-
+  
       const data = await response.json();
+      console.log("Full API Response:", data); // Log the full response for debugging
+  
       setUser({
-        username: data.username,
-        email: data.email,
+        _id: data._id || '', // Include _id if needed
+        username: data.username || '',
+        email: data.email || '',
         avatar: data.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
-        bio: data.bio,
-        goal: data.goal,
-        preferences: data.preferences
+        bio: data.bio || '',
+        goal: data.goal || '',
+        preferences: data.preferences || [],
+        age: data.age || '',
+        height: data.height || '',
+        weight: data.weight || '',
+        gender: data.gender || '',
+        activityLevel: data.activityLevel || '',
+        nutritionalGoals: {
+          calories: data.nutritionalGoals?.calories || '',
+          protein: data.nutritionalGoals?.protein || '',
+          carbs: data.nutritionalGoals?.carbs || '',
+          fats: data.nutritionalGoals?.fats || ''
+        }
       });
+  
+      setTotalCalories(Number(data.nutritionalGoals?.calories) || NaN);
+      setMacros({
+        carbs: { ...macros.carbs, goal: Number(data.nutritionalGoals?.carbs) || NaN },
+        protein: { ...macros.protein, goal: Number(data.nutritionalGoals?.protein) || NaN },
+        fat: { ...macros.fat, goal: Number(data.nutritionalGoals?.fats) || NaN },
+      });
+  
       setLoading(false);
     } catch (error) {
-      console.log("Erreur lors de la récupération des informations utilisateur :", error);
+      console.log("Error fetching user info:", error.message);
       setLoading(false);
     }
   };
@@ -217,12 +253,17 @@ export default function App() {
             <TouchableOpacity onPress={goToPreviousDay} style={styles.arrowButton}>
               <Icon name="chevron-left" size={28} color={COLORS.vert} />
             </TouchableOpacity>
-            <Text style={styles.dateText}>
-              {format(selectedDate, 'EEEE, MMM d')}
-              {format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') && (
-                <Text style={{ color: COLORS.orange }}> (Today)</Text>
-              )}
-            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('FoodDiary')}
+              style={styles.dateContainer}
+            >
+              <Text style={styles.dateText}>
+                {format(selectedDate, 'EEEE, MMM d')}
+                {format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') && (
+                  <Text style={{ color: COLORS.orange }}> (Today)</Text>
+                )}
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={goToNextDay} style={styles.arrowButton}>
               <Icon name="chevron-right" size={28} color={COLORS.vert} />
             </TouchableOpacity>
