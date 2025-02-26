@@ -194,8 +194,11 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        style={styles.scrollView}  // Added scrollView style
+      >
         <LinearGradient
           colors={[COLORS.vert, '#1a7a4e']}
           style={styles.headerGradient}
@@ -363,7 +366,16 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {  // New style
+    flex: 1,
+    backgroundColor: COLORS.vert, // #105F3B
+  },
+  scrollView: {  // New style
+    flex: 1,
+    backgroundColor: COLORS.beige,
+  },
+  // Keep all other styles the same
+  container: {  // Remove this if you're not using it elsewhere
     flex: 1,
     backgroundColor: COLORS.beige,
   },
@@ -546,7 +558,7 @@ const styles = StyleSheet.create({
   streakCard: {
     borderRadius: 20,
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 35,
     overflow: 'hidden',
     elevation: 8,
     shadowColor: '#FF6B6B',

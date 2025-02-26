@@ -21,7 +21,7 @@ const HeaderTitle = ({ title }: { title: string }) => (
     </Text>
 );
 
-export default function RecipeLayout() {
+export default function ProfileLayout() {
     return (
         <Stack
             screenOptions={{
@@ -46,17 +46,17 @@ export default function RecipeLayout() {
             }}
         >
             <Stack.Screen
-                name="Recipes"
+                name="Profile"
                 options={{ headerShown: false }}
             />
 
             <Stack.Screen
-                name="RecipesDetails"
+                name="ProfileDetails"
                 options={{
-                    headerTitle: () => <HeaderTitle title="Recipe Details" />,
+                    headerTitle: () => <HeaderTitle title="Profile Details" />,
                     headerRight: () => (
                         <MaterialCommunityIcons
-                            name="heart-outline"
+                            name="account-edit"
                             size={24}
                             color={COLORS.beige}
                             style={{ marginRight: 16 }}
@@ -66,27 +66,9 @@ export default function RecipeLayout() {
             />
 
             <Stack.Screen
-                name="CreateRecipe"
+                name="EditProfile"
                 options={{
-                    headerTitle: () => <HeaderTitle title="New Recipe" />,
-
-                }}
-            />
-
-            <Stack.Screen
-                name="AddIngredient"
-                options={{
-                    headerTitle: () => <HeaderTitle title="New Recipe" />,
-                    headerRight: () => (
-                        <Text style={{
-                            color: COLORS.orange,
-                            marginRight: 16,
-                            fontWeight: '600',
-                            fontSize: 16
-                        }}>
-                            Publish
-                        </Text>
-                    )
+                    headerTitle: () => <HeaderTitle title="Edit Profile" />,
                 }}
             />
         </Stack>

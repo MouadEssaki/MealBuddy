@@ -7,7 +7,6 @@ import {
     ActivityIndicator,
     StyleSheet,
     ScrollView,
-    Image
 } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import LottieView from 'lottie-react-native';
@@ -23,8 +22,8 @@ const COLORS = {
     background: '#F9F9F9'
 };
 
-
-export default function AddMeal() {
+export default function AddIngredient() {
+    const [recipeIngredients, setRecipeIngredients] = useState([]);
     const [research, setResearch] = useState('');
     const [meal, setMeal] = useState([]);
     const [filteredMeal, setFilteredMeal] = useState([]);
@@ -32,8 +31,8 @@ export default function AddMeal() {
     const [advancedResearchLoading, setAdvancedResearchLoading] = useState(false);
     const [error, setError] = useState(null);
     const [stillNotThere, setStillNotThere] = useState(false);
-    const navigation = useNavigation();
-    const { mealType, date } = useLocalSearchParams()
+
+    const navigation = useNavigation(); // Get the navigation object
 
     const apiPoint = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/foods";
     const apiAdvancedResearch = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/utils/search_food";
@@ -42,7 +41,6 @@ export default function AddMeal() {
         try {
             const response = await fetch(apiPoint);
             const data = await response.json();
-            // Assuming the API returns { results: "[...]" } or a direct array
             const mealData = Array.isArray(data) ? data : JSON.parse(data.results || '[]');
             setMeal(mealData);
             setFilteredMeal(mealData);
@@ -72,25 +70,21 @@ export default function AddMeal() {
             const data = await response.json();
             console.log('Advanced Research Response:', data);
 
-            // Handle the results string
             let results = [];
             if (data.results) {
-                // Replace single quotes with double quotes to fix invalid JSON
                 const cleanedResults = data.results.replace(/'/g, '"');
                 try {
                     results = JSON.parse(cleanedResults);
                     if (!Array.isArray(results)) {
-                        // If parsed result isn’t an array, wrap it in an array
                         results = [results];
                     }
                 } catch (parseError) {
                     console.error('Failed to parse results:', parseError);
-                    results = []; // Fallback to empty array on parse failure
+                    results = [];
                 }
             }
 
             setFilteredMeal(results);
-            //add it to the meal array
             setMeal([...meal, ...results]);
             setStillNotThere(true);
             if (results.length === 0) {
@@ -122,10 +116,18 @@ export default function AddMeal() {
         }
     }, [research]);
 
-    const handleMealDetails = (meal) => {
-        navigation.navigate('SelectedMeal', { selectedMeal: JSON.stringify(meal), mealType, date });
+    const handleAddIngredient = (ingredient) => {
+        setRecipeIngredients([...recipeIngredients, ingredient]);
     };
 
+    // Function to handle going back and passing the recipeIngredients
+    const handleGoBack = () => {
+        navigation.navigate({
+            name: 'CreateRecipe', 
+            params: { recipeIngredients },
+            merge: true,
+        });
+    };
 
     return (
         <View style={styles.container}>
@@ -133,7 +135,7 @@ export default function AddMeal() {
                 colors={[COLORS.vert, '#1a7a4e']}
                 style={styles.header}
             >
-                <Text style={styles.headerTitle}>Add New Meal</Text>
+                <Text style={styles.headerTitle}>Add ingredient to your recipe</Text>
                 <Text style={styles.headerSubtitle}>Search our database or add custom items</Text>
             </LinearGradient>
 
@@ -181,10 +183,6 @@ export default function AddMeal() {
 
                         filteredMeal.length === 0 ? (
                             <View style={styles.emptyState}>
-                                {/* <Image
-                            source={require('../../assets/empty-search.png')}
-                            style={styles.emptyImage}
-                        /> */}
                                 <Text style={styles.emptyTitle}>No Results Found</Text>
                                 <Text style={styles.emptyText}>Try adjusting your search or use advanced search</Text>
                             </View>
@@ -193,7 +191,7 @@ export default function AddMeal() {
                                 <TouchableOpacity
                                     key={index}
                                     style={styles.mealCard}
-                                    onPress={() => handleMealDetails(item)}
+                                    onPress={() => handleAddIngredient(item)}
                                 >
                                     <View style={styles.mealHeader}>
                                         <Icon name="restaurant" size={24} color={COLORS.vert} />
@@ -260,11 +258,37 @@ export default function AddMeal() {
                         </TouchableOpacity>
                     </View>
                 )}
+
+                {recipeIngredients.length > 0 && (
+                    <View style={styles.recipeContainer}>
+                        <Text style={styles.recipeTitle}>Current Recipe Ingredients:</Text>
+                        {recipeIngredients.map((ingredient, index) => (
+                            <View key={index} style={styles.ingredientItem}>
+                                <Text style={styles.ingredientName}>{ingredient.name}</Text>
+                                <Text style={styles.ingredientDetails}>
+                                    {ingredient.nutritional_info.calories} cal | {ingredient.quantity_measurement}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Add a "Done" button to go back */}
+                <TouchableOpacity
+                    style={styles.doneButton}
+                    onPress={handleGoBack}
+                >
+                    <LinearGradient
+                        colors={[COLORS.vert, '#1a7a4e']}
+                        style={styles.gradientButton}
+                    >
+                        <Text style={styles.buttonText}>Done</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
             </ScrollView>
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -301,24 +325,19 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 3,
-        marginBottom: 10,
-
     },
     searchIcon: {
         marginRight: 12,
-        
     },
     input: {
         flex: 1,
         fontSize: 16,
         color: COLORS.vert,
-        
     },
     contentContainer: {
         paddingHorizontal: 24,
         paddingTop: 24,
         paddingBottom: 40,
-
     },
     loadingContainer: {
         alignItems: 'center',
@@ -424,5 +443,38 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#666',
         marginBottom: 15,
+    },
+    recipeContainer: {
+        marginTop: 30,
+        padding: 20,
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+    },
+    recipeTitle: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginBottom: 15,
+    },
+    ingredientItem: {
+        marginBottom: 10,
+    },
+    ingredientName: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: COLORS.vert,
+    },
+    ingredientDetails: {
+        fontSize: 14,
+        color: '#666',
+    },
+    doneButton: {
+        borderRadius: 15,
+        overflow: 'hidden',
+        marginTop: 30,
     },
 });
