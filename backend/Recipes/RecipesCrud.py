@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from bson import ObjectId
 from datetime import datetime
+from .recipeGenerator import generate_and_save_recipe
 
 # Create a Blueprint for recipes
 recipes_bp = Blueprint('recipes', __name__, url_prefix='/api')

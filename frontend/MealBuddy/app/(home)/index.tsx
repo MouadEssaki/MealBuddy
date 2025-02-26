@@ -253,12 +253,17 @@ export default function App() {
             <TouchableOpacity onPress={goToPreviousDay} style={styles.arrowButton}>
               <Icon name="chevron-left" size={28} color={COLORS.vert} />
             </TouchableOpacity>
-            <Text style={styles.dateText}>
-              {format(selectedDate, 'EEEE, MMM d')}
-              {format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') && (
-                <Text style={{ color: COLORS.orange }}> (Today)</Text>
-              )}
-            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('FoodDiary')}
+              style={styles.dateContainer}
+            >
+              <Text style={styles.dateText}>
+                {format(selectedDate, 'EEEE, MMM d')}
+                {format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') && (
+                  <Text style={{ color: COLORS.orange }}> (Today)</Text>
+                )}
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={goToNextDay} style={styles.arrowButton}>
               <Icon name="chevron-right" size={28} color={COLORS.vert} />
             </TouchableOpacity>
