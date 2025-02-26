@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text } from 'react-native';
+import { GlobalProvider } from './GlobalState';
 
 const COLORS = {
     vertClaire: '#68AA64',
@@ -23,72 +24,64 @@ const HeaderTitle = ({ title }: { title: string }) => (
 
 export default function RecipeLayout() {
     return (
-        <Stack
-            screenOptions={{
-                headerStyle: {
-                    backgroundColor: COLORS.vert,
-                    elevation: 0,
-                    shadowColor: 'transparent',
-                },
-                headerTintColor: COLORS.beige,
-                headerTitleStyle: {
-                    fontWeight: '600',
-                },
-                headerBackTitleVisible: false,
-                headerBackImage: () => (
-                    <MaterialCommunityIcons
-                        name="arrow-left"
-                        size={24}
-                        color={COLORS.beige}
-                        style={{ marginLeft: 16 }}
-                    />
-                ),
-            }}
-        >
-            <Stack.Screen
-                name="Recipes"
-                options={{ headerShown: false }}
-            />
-
-            <Stack.Screen
-                name="RecipesDetails"
-                options={{
-                    headerTitle: () => <HeaderTitle title="Recipe Details" />,
-                    headerRight: () => (
+        <GlobalProvider>
+            <Stack
+                screenOptions={{
+                    headerStyle: {
+                        backgroundColor: COLORS.vert,
+                        elevation: 0,
+                        shadowColor: 'transparent',
+                    },
+                    headerTintColor: COLORS.beige,
+                    headerTitleStyle: {
+                        fontWeight: '600',
+                    },
+                    headerBackTitleVisible: false,
+                    headerBackImage: () => (
                         <MaterialCommunityIcons
-                            name="heart-outline"
+                            name="arrow-left"
                             size={24}
                             color={COLORS.beige}
-                            style={{ marginRight: 16 }}
+                            style={{ marginLeft: 16 }}
                         />
                     ),
                 }}
-            />
+            >
+                <Stack.Screen
+                    name="Recipes"
+                    options={{ headerShown: false }}
+                />
 
-            <Stack.Screen
-                name="CreateRecipe"
-                options={{
-                    headerTitle: () => <HeaderTitle title="New Recipe" />,
+                <Stack.Screen
+                    name="RecipesDetails"
+                    options={{
+                        headerTitle: () => <HeaderTitle title="Recipe Details" />,
+                        headerRight: () => (
+                            <MaterialCommunityIcons
+                                name="heart-outline"
+                                size={24}
+                                color={COLORS.beige}
+                                style={{ marginRight: 16 }}
+                            />
+                        ),
+                    }}
+                />
 
-                }}
-            />
+                <Stack.Screen
+                    name="CreateRecipe"
+                    options={{
+                        headerTitle: () => <HeaderTitle title="New Recipe" />,
 
-            <Stack.Screen
-                name="AddIngredient"
-                options={{
-                    headerTitle: () => <HeaderTitle title="New Recipe" />,
-                    headerRight: () => (
-                        <Text style={{
-                            color: COLORS.orange,
-                            marginRight: 16,
-                            fontWeight: '600',
-                            fontSize: 16
-                        }}>
-                            Publish
-                        </Text>
-                    )
-                }}
-            />
-        </Stack>
+                    }}
+                />
+
+                <Stack.Screen
+                    name="AddIngredient"
+                    options={{
+                        headerTitle: () => <HeaderTitle title="New Recipe" />,
+                    }}
+                />
+            </Stack>
+        </GlobalProvider>
     );
 }

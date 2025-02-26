@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+// AddIngredient.js
+import React, { useEffect, useState, useContext } from 'react';
 import {
     Text,
     View,
@@ -7,11 +8,13 @@ import {
     ActivityIndicator,
     StyleSheet,
     ScrollView,
+    Modal,
 } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { GlobalContext } from './GlobalState'; // Import the global context
 
 const COLORS = {
     vertClaire: '#68AA64',
@@ -23,7 +26,6 @@ const COLORS = {
 };
 
 export default function AddIngredient() {
-    const [recipeIngredients, setRecipeIngredients] = useState([]);
     const [research, setResearch] = useState('');
     const [meal, setMeal] = useState([]);
     const [filteredMeal, setFilteredMeal] = useState([]);
@@ -31,8 +33,11 @@ export default function AddIngredient() {
     const [advancedResearchLoading, setAdvancedResearchLoading] = useState(false);
     const [error, setError] = useState(null);
     const [stillNotThere, setStillNotThere] = useState(false);
+    const [selectedIngredient, setSelectedIngredient] = useState(null); // Track selected ingredient
+    const [grams, setGrams] = useState(''); // Track grams input
 
-    const navigation = useNavigation(); // Get the navigation object
+    const navigation = useNavigation();
+    const { ingredients, setRecipeIngredients } = useContext(GlobalContext); // Access global state
 
     const apiPoint = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/foods";
     const apiAdvancedResearch = "https://mealbuddy-smartgroup2025.azurewebsites.net/api/utils/search_food";
@@ -116,17 +121,49 @@ export default function AddIngredient() {
         }
     }, [research]);
 
-    const handleAddIngredient = (ingredient) => {
-        setRecipeIngredients([...recipeIngredients, ingredient]);
+    // Function to handle selecting an ingredient and opening the grams input modal
+    const handleSelectIngredient = (ingredient) => {
+        setSelectedIngredient(ingredient);
+        setGrams(''); // Reset grams input
     };
 
-    // Function to handle going back and passing the recipeIngredients
+    // Function to confirm the ingredient with the specified grams
+    const handleConfirmIngredient = () => {
+        if (!selectedIngredient || !grams) return;
+    
+        const gramsValue = parseFloat(grams);
+        if (isNaN(gramsValue) || gramsValue <= 0) return; // Ensure valid input
+    
+        const { nutritional_info, quantity_measurement } = selectedIngredient;
+        const defaultGrams = parseFloat(quantity_measurement); // Extract the default grams
+    
+        if (isNaN(defaultGrams) || defaultGrams <= 0) return; // Ensure valid default grams
+    
+        // Calculate macros based on custom grams input
+        const scaleFactor = gramsValue / defaultGrams; 
+    
+        const ingredientWithGrams = {
+            name: selectedIngredient.name,
+            grams: gramsValue, // Custom grams input
+            calories: (nutritional_info.calories * scaleFactor).toFixed(2),
+            proteins: (nutritional_info.proteins * scaleFactor).toFixed(2),
+            carbs: (nutritional_info.carbs * scaleFactor).toFixed(2),
+            fats: (nutritional_info.fats * scaleFactor).toFixed(2),
+            fiber: (nutritional_info.fiber * scaleFactor).toFixed(2),
+            sugars: (nutritional_info.sugars * scaleFactor).toFixed(2),
+            sodium: (nutritional_info.sodium * scaleFactor).toFixed(2),
+            cholesterol: (nutritional_info.cholesterol * scaleFactor).toFixed(2),
+        };
+    
+        setRecipeIngredients([...ingredients, ingredientWithGrams]); // Update global state
+        setSelectedIngredient(null); // Close the modal
+        setGrams(''); // Reset grams input
+    };
+    
+
+    // Function to handle going back
     const handleGoBack = () => {
-        navigation.navigate({
-            name: 'CreateRecipe', 
-            params: { recipeIngredients },
-            merge: true,
-        });
+        navigation.goBack(); // Navigate back to the previous screen
     };
 
     return (
@@ -191,26 +228,49 @@ export default function AddIngredient() {
                                 <TouchableOpacity
                                     key={index}
                                     style={styles.mealCard}
-                                    onPress={() => handleAddIngredient(item)}
+                                    onPress={() => handleSelectIngredient(item)}
                                 >
                                     <View style={styles.mealHeader}>
                                         <Icon name="restaurant" size={24} color={COLORS.vert} />
                                         <Text style={styles.mealName}>{item.name}</Text>
                                     </View>
-
-                                    <View style={styles.nutritionInfo}>
-                                        <View style={styles.nutritionItem}>
-                                            <Icon name="local-fire-department" size={18} color={COLORS.orange} />
-                                            <Text style={styles.nutritionText}>{item.nutritional_info.calories} cal</Text>
-                                        </View>
-                                        <View style={styles.nutritionItem}>
-                                            <Icon name="scale" size={18} color={COLORS.vert} />
-                                            <Text style={styles.nutritionText}>{item.quantity_measurement}</Text>
-                                        </View>
-                                    </View>
                                 </TouchableOpacity>
                             ))
                         )}
+
+                {/* Modal for selecting grams */}
+                <Modal
+                    visible={!!selectedIngredient}
+                    transparent={true}
+                    animationType="slide"
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Enter Quantity (in grams)</Text>
+                            <TextInput
+                                style={styles.modalInput}
+                                placeholder="e.g., 100"
+                                keyboardType="numeric"
+                                value={grams}
+                                onChangeText={setGrams}
+                            />
+                            <View style={styles.modalButtons}>
+                                <TouchableOpacity
+                                    style={styles.modalButton}
+                                    onPress={() => setSelectedIngredient(null)}
+                                >
+                                    <Text style={styles.modalButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalButton, styles.modalButtonConfirm]}
+                                    onPress={handleConfirmIngredient}
+                                >
+                                    <Text style={styles.modalButtonText}>Confirm</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
 
                 {(filteredMeal.length === 0 && !loading) && (
                     <TouchableOpacity
@@ -259,14 +319,14 @@ export default function AddIngredient() {
                     </View>
                 )}
 
-                {recipeIngredients.length > 0 && (
+                {ingredients.length > 0 && (
                     <View style={styles.recipeContainer}>
                         <Text style={styles.recipeTitle}>Current Recipe Ingredients:</Text>
-                        {recipeIngredients.map((ingredient, index) => (
+                        {ingredients.map((ingredient, index) => (
                             <View key={index} style={styles.ingredientItem}>
                                 <Text style={styles.ingredientName}>{ingredient.name}</Text>
                                 <Text style={styles.ingredientDetails}>
-                                    {ingredient.nutritional_info.calories} cal | {ingredient.quantity_measurement}
+                                    {ingredient.grams}g
                                 </Text>
                             </View>
                         ))}
@@ -404,19 +464,6 @@ const styles = StyleSheet.create({
         marginLeft: 12,
         flex: 1,
     },
-    nutritionInfo: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    nutritionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    nutritionText: {
-        fontSize: 14,
-        color: '#666',
-        marginLeft: 8,
-    },
     advancedButton: {
         borderRadius: 15,
         overflow: 'hidden',
@@ -476,5 +523,52 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         overflow: 'hidden',
         marginTop: 30,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        padding: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: COLORS.vert,
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    modalInput: {
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        marginBottom: 20,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    modalButton: {
+        flex: 1,
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginHorizontal: 5,
+        backgroundColor: COLORS.orange,
+    },
+    modalButtonConfirm: {
+        backgroundColor: COLORS.vert,
+    },
+    modalButtonText: {
+        color: COLORS.white,
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
