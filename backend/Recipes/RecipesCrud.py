@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from bson import ObjectId
 from datetime import datetime
-from .recipeGenerator import generate_and_save_recipe
 
 # Create a Blueprint for recipes
 recipes_bp = Blueprint('recipes', __name__, url_prefix='/api')
@@ -82,23 +81,3 @@ def delete_recipe(id):
     except:
         return jsonify({"error": "Invalid ID"}), 400
     
-@recipes_bp.route('/generate_recipe', methods=['POST'])
-def generate_recipe():
-    db = current_app.config['db']
-    data = request.get_json()
-    
-    user_id = data.get("user_id")
-    mandatory_ingredients = data.get("mandatory_ingredients", [])
-    theme = data.get("theme", "")
-    
-    # Validate input data
-    if not user_id or not mandatory_ingredients:
-        return jsonify({"error": "user_id and mandatory_ingredients are required"}), 400
-
-    # Call the generate_and_save_recipe function
-    result = generate_and_save_recipe(user_id, mandatory_ingredients, theme)
-    
-    if result['status'] == 'success':
-        return jsonify({"recipe_id": result['recipe_id'], "new_ingredients": result['new_ingredients']}), 201
-    else:
-        return jsonify({"error": result['message']}), 500
