@@ -33,6 +33,12 @@ export default function HomeLayout() {
             }}
         >
             <Stack.Screen
+                name="FoodDiary"
+                options={{
+                    headerTitle: () => <HeaderTitle title="Food Diary" />,
+                }}
+            />
+            <Stack.Screen
                 name="index"
                 options={{
                     headerShown: false,
@@ -52,7 +58,7 @@ export default function HomeLayout() {
                 name="AddMeal"
                 options={{
                     headerTitle: () => <HeaderTitle title="Log Meal" />,
-                    
+
                 }}
             />
 
