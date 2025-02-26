@@ -126,7 +126,6 @@ export default function EditProfile() {
             );
 
             if (response.ok) {
-                Alert.alert("Success", "Profile updated successfully");
                 navigation.goBack();
             } else {
                 throw new Error("Failed to update profile");
@@ -174,6 +173,7 @@ export default function EditProfile() {
 
             <TextInput
                 placeholder="Full Name"
+                placeholderTextColor="#999"
                 value={username}
                 onChangeText={setUsername}
                 style={styles.input}
@@ -182,6 +182,7 @@ export default function EditProfile() {
             />
             <TextInput
                 placeholder="Email Address"
+                placeholderTextColor="#999"
                 value={email}
                 onChangeText={setEmail}
                 style={styles.input}
@@ -192,6 +193,7 @@ export default function EditProfile() {
             />
             <TextInput
                 placeholder="Password (leave blank to keep current)"
+                placeholderTextColor="#999"
                 value={password}
                 onChangeText={setPassword}
                 style={styles.input}
@@ -201,6 +203,7 @@ export default function EditProfile() {
             />
             <TextInput
                 placeholder="Bio"
+                placeholderTextColor="#999"
                 value={bio}
                 onChangeText={setBio}
                 style={[styles.input, styles.bioInput]}

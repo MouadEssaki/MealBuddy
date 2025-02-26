@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Image, ActivityIndicator, TouchableOpacity, Animated, StyleSheet } from "react-native";
 import { ApplicationProvider, Layout, Text, Button } from "@ui-kitten/components";
 import * as eva from "@eva-design/eva";
@@ -13,6 +13,7 @@ import { PanGestureHandler } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { checkStreak } from '@/composants/checkStreak';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
+import {  useFocusEffect } from 'expo-router';
 
 
 
@@ -38,6 +39,16 @@ export default function Profile() {
             useNativeDriver: true
         }).start();
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchData = async () => {
+                console.log('Refreshing data...');
+                await fetchUserInfo();
+            };
+            fetchData();
+        }, []) // Add dependency here
+    );
 
     const fetchUserInfo = async () => {
         try {
@@ -189,20 +200,26 @@ export default function Profile() {
                             borderRadius: 20,
                             padding: 20,
                         }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
-                                <IconFA5
-                                    name="bullseye"
-                                    size={20}
-                                    color={customTheme.orange}
-                                    style={{ marginRight: 10 }}
-                                />
-                                <Text category='h6' style={{ color: customTheme.vert, fontWeight: '700' }}>
-                                    Current Goal
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('EditGoal')}
+                                style={{ marginBottom: 15 }}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <IconFA5
+                                        name="bullseye"
+                                        size={20}
+                                        color={customTheme.orange}
+                                        style={{ marginRight: 10 }}
+                                    />
+                                    <Text category='h6' style={{ color: customTheme.vert, fontWeight: '700' }}>
+                                        Current Goal
+                                    </Text>
+                                </View>
+                                <Text category='s1' style={{ color: customTheme.vert, marginTop: 5 }}>
+                                    {user.goal || "No current goal set"}
                                 </Text>
-                            </View>
-                            <Text category='s1' style={{ color: customTheme.vert }}>
-                                {user.goal || "No current goal set"}
-                            </Text>
+                            </TouchableOpacity>
+
 
                             <View style={{
                                 flexDirection: 'row',

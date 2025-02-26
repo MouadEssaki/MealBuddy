@@ -53,15 +53,7 @@ export default function ProfileLayout() {
             <Stack.Screen
                 name="EditGoal"
                 options={{
-                    headerTitle: () => <HeaderTitle title="Profile Details" />,
-                    headerRight: () => (
-                        <MaterialCommunityIcons
-                            name="account-edit"
-                            size={24}
-                            color={COLORS.beige}
-                            style={{ marginRight: 16 }}
-                        />
-                    ),
+                    headerTitle: () => <HeaderTitle title="EditGoal" />,
                 }}
             />
 
