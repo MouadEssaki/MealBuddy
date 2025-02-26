@@ -39,7 +39,9 @@ export default function Profile() {
     const fetchUserInfo = async () => {
         try {
             const token = await AsyncStorage.getItem('authToken');
+            console.log("heret the token", token);
             const userId = await AsyncStorage.getItem('currentUser');
+            console.log("here the user", userId);
 
             if (!token || !userId) {
                 console.log("Token ou ID utilisateur manquant");
@@ -87,6 +89,7 @@ export default function Profile() {
         await AsyncStorage.removeItem('currentUser');
         await Updates.reloadAsync(); // Recharge toute l'application
     };
+
 
     if (loading) {
         return (

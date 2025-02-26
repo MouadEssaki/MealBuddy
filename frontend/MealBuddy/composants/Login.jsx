@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FOOD_COLORS = {
     primary: "#105F3B",
@@ -23,8 +23,8 @@ const Login = ({ onAuthSuccess, onSwitchToRegister }) => {
         const loginEmail = autoEmail || email;
         const loginPassword = autoPassword || password;
 
-        console.log("Email:", loginEmail); // Debugging
-        console.log("Password:", loginPassword); // Debugging
+        console.log("Email:", loginEmail);
+        console.log("Password:", loginPassword);
 
         if (!loginEmail || !loginPassword) {
             setMessage("Email and password cannot be blank.");
@@ -39,7 +39,7 @@ const Login = ({ onAuthSuccess, onSwitchToRegister }) => {
                 password: loginPassword,
             });
 
-            console.log("Request body:", requestBody); // Debugging
+            console.log("Request body:", requestBody);
 
             const response = await fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/login', {
                 method: 'POST',
@@ -48,19 +48,20 @@ const Login = ({ onAuthSuccess, onSwitchToRegister }) => {
             });
 
             const data = await response.json();
-            console.log("Server response:", data); // Debugging
+            console.log("Server response:", data);
 
             if (response.ok) {
                 if (data.token && data.user) {
                     try {
-                        await SecureStore.setItemAsync('rememberedEmail', loginEmail);
-                        await SecureStore.setItemAsync('rememberedPassword', loginPassword);
-                        console.log("Credentials saved to SecureStore");
-                    } catch (secureStoreError) {
-                        console.error("SecureStore save error:", secureStoreError);
-                        setMessage("Failed to save credentials securely.");
+                        await AsyncStorage.setItem('rememberedEmail', loginEmail);
+                        await AsyncStorage.setItem('rememberedPassword', loginPassword);
+                        console.log("Credentials saved to AsyncStorage");
+                    } catch (error) {
+                        console.error("AsyncStorage save error:", error);
+                        setMessage("Failed to save credentials.");
                     }
-                    onAuthSuccess(data.token);
+                    console.log("Login successful:", data);
+                    handleAuthSuccess(data.token, data.user._id); // Call the updated function here
                 } else {
                     setMessage('Invalid token or user data received.');
                 }
@@ -72,6 +73,19 @@ const Login = ({ onAuthSuccess, onSwitchToRegister }) => {
             setMessage('Network error. Please check your connection.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Updated handleAuthSuccess function to store the token
+    const handleAuthSuccess = async (token, id) => {
+        try {
+            await AsyncStorage.setItem('authToken', token); // Store the token
+            console.log(id)
+            await AsyncStorage.setItem('currentUser', id);
+            console.log('Authentication successful: Token stored in AsyncStorage');
+            onAuthSuccess(token); // Proceed with the original callback
+        } catch (error) {
+            console.error('Error storing token in AsyncStorage:', error);
         }
     };
 
@@ -90,11 +104,10 @@ const Login = ({ onAuthSuccess, onSwitchToRegister }) => {
                             placeholder="Email"
                             placeholderTextColor={FOOD_COLORS.accent}
                             value={email}
-                            onChangeText={text => setEmail(text)} // This should pass a string.
+                            onChangeText={text => setEmail(text)}
                             keyboardType="email-address"
                             autoCapitalize="none"
                         />
-
                     </View>
 
                     <View style={styles.inputWrapper}>

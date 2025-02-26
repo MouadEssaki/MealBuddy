@@ -109,6 +109,7 @@ export default function Layout() {
   };
 
   const handleAuthSuccess = async (token) => {
+    console.log('Received authToken:', token);
     if (!token) {
       console.error('Received undefined token');
       return;
