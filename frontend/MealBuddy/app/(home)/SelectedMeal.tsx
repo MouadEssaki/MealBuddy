@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { addMealItem } from '../../database/personnalData';
+import { addMealItem , syncMealWithAPI } from '../../database/personnalData';
 import { StackActions } from '@react-navigation/native';
+
 
 const SelectedMeal = () => {
     const { selectedMeal, mealType, date } = useLocalSearchParams();
@@ -42,6 +43,35 @@ const SelectedMeal = () => {
     }, [customAmount, selectedServing, servingMultiplier]);
 
 
+    
+    
+    const handleAddToDay = async () => {
+        try {
+            // Déterminer la nouvelle mesure de quantité en fonction du type de portion
+            const newQuantityMeasurement = selectedServing === 'default'
+                ? `${defaultAmount * servingMultiplier}${defaultUnit}`
+                : `${customAmount}${defaultUnit}`;
+    
+            // Créer l’objet repas mis à jour avec les valeurs ajustées
+            const updatedMeal = {
+                ...mealObj,
+                nutritional_info: calculatedNutrition,
+                quantity_measurement: newQuantityMeasurement,
+            };
+    
+            // Étape 1 : Ajouter le repas à AsyncStorage
+            await addMealItem(selectedDate, mealType, updatedMeal);
+    
+            // Étape 2 : Synchroniser avec l’API
+            await syncMealWithAPI(selectedDate, mealType, updatedMeal);
+    
+            // Naviguer en arrière après succès
+            navigation.dispatch(StackActions.pop(2));
+        } catch (error) {
+            console.error('Erreur lors de l’ajout du repas :', error);
+        }
+    };
+    /*
     const handleAddToDay = () => {
         // Determine the new quantity measurement based on serving type
         const newQuantityMeasurement = selectedServing === 'default'
@@ -59,7 +89,7 @@ const SelectedMeal = () => {
         addMealItem(selectedDate, mealType, updatedMeal).then(() => {
             navigation.dispatch(StackActions.pop(2));
         });
-    };
+    };*/
 
 
     // Group nutrients for better visual hierarchy

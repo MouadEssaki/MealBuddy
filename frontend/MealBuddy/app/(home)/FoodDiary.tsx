@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {customTheme} from '../customTheme'
+import { customTheme } from '../customTheme'
 import {
     View,
     ScrollView,
@@ -7,7 +7,7 @@ import {
     StyleSheet,
     Dimensions,
     ActivityIndicator,
-    Text,Button
+    Text, Button
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -41,7 +41,7 @@ const generateMonthDays = (date) => {
     return days;
 };
 
-export default function FoodDiary ({ navigation }) {
+export default function FoodDiary({ navigation }) {
     const [activeTab, setActiveTab] = useState('calendar');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -121,6 +121,8 @@ export default function FoodDiary ({ navigation }) {
                     id: `${log._id}-${index}`,
                     date: log.date,
                     time: meal.time,
+                    nom: meal.nom || meal.name || meal.title,          
+                    quantity: meal.quantity,
                     items: meal.items,
                     calories: meal.calories,
                     nutrients: typeof meal.nutrients === 'string'
@@ -137,6 +139,12 @@ export default function FoodDiary ({ navigation }) {
             <Text category='h5' style={styles.statValue}>
                 {value}<Text category='c1' appearance='hint'> {unit}</Text>
             </Text>
+        </View>
+    );
+    const NutritionPill = ({ label, value }) => (
+        <View style={styles.nutritionPill}>
+            <Text category='c2' appearance='hint'>{label}</Text>
+            <Text category='s2' style={styles.nutritionValue}>{value}</Text>
         </View>
     );
 
@@ -157,9 +165,13 @@ export default function FoodDiary ({ navigation }) {
             {expandedMeals.includes(meal.id) && (
                 <View style={styles.mealDetails}>
                     <Text style={styles.detailTitle}>Ingredients:</Text>
-                    {meal.items.map((item, index) => (
-                        <Text key={index} style={styles.detailItem}>• {item.name} ({item.quantity}g)</Text>
-                    ))}
+                    {meal.items && Array.isArray(meal.items) ? (
+                        meal.items.map((item, index) => (
+                            <Text key={index} style={styles.detailItem}>• {item.name ||item.nom} ({item.quantity}g)</Text>
+                        ))
+                    ) : (
+                        <Text style={styles.detailItem}>• {meal.nom || meal.name || meal.title|| 'Unnamed Meal'} ({meal.quantity || 0}g)</Text>
+                    )}
 
                     <View style={styles.nutritionGrid}>
                         <NutritionPill label="Protein" value={`${meal.nutrients.protein}g`} />
@@ -501,7 +513,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
         fontWeight: 'bold'
     },
-     loadingContainer: {
+    loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center'

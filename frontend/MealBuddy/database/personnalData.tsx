@@ -93,6 +93,129 @@ export const addMealItem = async (
     await saveMealPlan(mealPlan);
 };
 
+export const syncMealWithAPI = async (date, mealType, mealItem) => {
+    try {
+        // Retrieve token and user ID from AsyncStorage
+        const token = await AsyncStorage.getItem('authToken');
+        const userId = await AsyncStorage.getItem('currentUser');
+        const formattedDate = formatDate(date); // Format date to YYYY-MM-DD
+
+        // Prepare common meal data
+        const commonMealData = {
+            nom: mealItem.name,
+            time: mealType,
+            calories: Math.round(mealItem.nutritional_info.calories),
+            nutrients: {
+                protein: Math.round(mealItem.nutritional_info.proteins || 0),
+                carbs: Math.round(mealItem.nutritional_info.carbs || 0),
+                fats: Math.round(mealItem.nutritional_info.fats || 0),
+            },
+        };
+        /*TEMPLATE
+        {
+            "user_id": "67bea1073032029d61862a54",
+            "date": "2025-02-26",
+            "meals": [
+              {
+                "nom": "Omelette Breakfast",  // Nom du repas
+                "time": "Breakfast",
+                "calories": 300,  // Calories du repas
+                "nutrients": {
+                  "protein": 20,
+                  "carbs": 25,
+                  "fats": 10
+                },
+                "items": [
+                  { 
+                    "nom": "Omelette",  // Nom de l'élément
+                    "quantity": 150,
+                    "calories": 120  // Calories de l'élément
+                  },
+                  { 
+                    "nom": "Whole wheat bread",  // Nom de l'élément
+                    "quantity": 50,
+                    "calories": 180  // Calories de l'élément
+                  }
+                ],
+                "recipe_id": "1"
+              }
+            ]
+        }*/
+          
+
+
+        // Prepare specific meal data based on type
+        let specificMealData = {};
+        if (mealItem.type === 'food') {
+            specificMealData = {
+                food_id: mealItem._id,
+                quantity: parseInt(mealItem.quantity_measurement.match(/\d+/)[0]),
+            };
+        } else if (mealItem.type === 'recipe') {
+            specificMealData = {
+                recipe_id: mealItem._id,
+                items: mealItem.items.map(item => ({
+                    nom: item.name,
+                    quantity: item.quantity,
+                    calories: item.calories,
+                })),
+            };
+        } else {
+            specificMealData = {
+                food_id: mealItem._id,
+                quantity: parseInt(mealItem.quantity_measurement.match(/\d+/)[0]),
+            };
+            //throw new Error('Invalid meal type');
+        }
+
+        // Combine common and specific data into the final mealData structure
+        const mealData = {
+            user_id: userId,
+            date: formattedDate,
+            meals: [{ ...commonMealData, ...specificMealData }],
+        };
+
+        // Check if a meal log already exists for this date
+        const existingLogResponse = await fetch(
+            `https://mealbuddy-smartgroup2025.azurewebsites.net/api/MealLogs?date=${formattedDate}`,
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        );
+
+        let mealLogId;
+        if (existingLogResponse.ok) {
+            const existingLogs = await existingLogResponse.json();
+            mealLogId = existingLogs.length > 0 ? existingLogs[0]._id : null;
+        }
+
+        // Determine the URL and method (POST to create, PATCH to update)
+        const url = mealLogId
+            ? `https://mealbuddy-smartgroup2025.azurewebsites.net/api/MealLogs/${mealLogId}`
+            : 'https://mealbuddy-smartgroup2025.azurewebsites.net/api/MealLogs';
+        const method = mealLogId ? 'PATCH' : 'POST';
+
+        // Send the request to the API
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(mealData),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to sync with the API');
+        }
+
+        console.log('Meal synced successfully');
+    } catch (error) {
+        console.error('Error during synchronization:', error);
+        throw error; // Re-throw the error to handle it in handleAddToDay
+    }
+};
+
 /**
  * Deletes a meal item from a specific meal on the given date by its id.
  *
