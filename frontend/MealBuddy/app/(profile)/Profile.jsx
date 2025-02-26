@@ -13,7 +13,7 @@ import { PanGestureHandler } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { checkStreak } from '@/composants/checkStreak';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
-import {  useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 
 
 
@@ -83,12 +83,24 @@ export default function Profile() {
 
             // Mise à jour du state user avec les données spécifiques
             setUser({
-                username: data.username,
-                email: data.email,
+                _id: data._id || '', // Include _id if needed
+                username: data.username || '',
+                email: data.email || '',
                 avatar: data.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
-                bio: data.bio,
-                goal: data.goal,
-                preferences: data.preferences
+                bio: data.bio || '',
+                goal: data.goal || '',
+                preferences: data.preferences || [],
+                age: data.age || '',
+                height: data.height || '',
+                weight: data.weight || '',
+                gender: data.gender || '',
+                activityLevel: data.activityLevel || '',
+                nutritionalGoals: {
+                    calories: data.nutritionalGoals?.calories || '',
+                    protein: data.nutritionalGoals?.protein || '',
+                    carbs: data.nutritionalGoals?.carbs || '',
+                    fats: data.nutritionalGoals?.fats || ''
+                }
             });
         } catch (error) {
             console.log("Erreur lors de la récupération des informations utilisateur :", error);
