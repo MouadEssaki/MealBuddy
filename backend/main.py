@@ -78,7 +78,25 @@ def SearchFood():
     resultat = search_food(data["search_term"])
     return jsonify({"message":f"Data succesfully recieved","results":f"{resultat['results']}"}), 200
 
-#etc
+@app.route('/api/utils/generate_recipe', methods=['POST'])
+def generate_recipe():
+    data = request.get_json()
+    
+    user_id = data.get("user_id")
+    mandatory_ingredients = data.get("mandatory_ingredients", [])
+    theme = data.get("theme", "")
+    
+    # Validate input data
+    if not user_id or not mandatory_ingredients:
+        return jsonify({"error": "user_id and mandatory_ingredients are required"}), 400
+
+    # Call the generate_and_save_recipe function
+    result = generate_and_save_recipe(user_id, mandatory_ingredients, theme)
+    
+    if result['status'] == 'success':
+        return jsonify({"recipe_id": result['recipe_id'], "new_ingredients": result['new_ingredients']}), 201
+    else:
+        return jsonify({"error": result['message']}), 500
 
 
 

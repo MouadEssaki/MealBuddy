@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GlobalContext } from './GlobalState'; // Import the global context
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
     vertClaire: '#68AA64',
@@ -70,7 +71,7 @@ export default function CreateRecipe() {
     };
 
     const handleCreateRecipe = async () => {
-        const userId = '67b9086fcf91584cc206f897'; // Replace with actual user ID
+        const userId = await AsyncStorage.getItem('currentUser');
 
         const recipeData = {
             title,
@@ -106,7 +107,7 @@ export default function CreateRecipe() {
 
     // Function to generate a recipe using AI
     const GenerateRecipe = async () => {
-        const userId = '67b9086fcf91584cc206f897'; // Replace with actual user ID
+        const userId = await AsyncStorage.getItem('currentUser');
         const mandatoryIngredients = ingredients.map(ingredient => ingredient.name); // Extract ingredient names
         const theme = selectedTheme; // Use the selected theme
 
