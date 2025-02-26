@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app, Response
 from bson import ObjectId
-from ..Users.UsersCrud import token_required
+import jwt
+from functools import wraps
 
 # Create a Blueprint for meal logs
 meal_logs_bp = Blueprint('meal_logs', __name__, url_prefix='/api')
@@ -8,6 +9,37 @@ meal_logs_bp = Blueprint('meal_logs', __name__, url_prefix='/api')
 # --------------------------------------------------------------------------
 # Meal Logs Routes
 # --------------------------------------------------------------------------
+
+def verify_token(token):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return payload['user_id']
+    except jwt.ExpiredSignatureError:
+        return 'Token expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({"error": "Token is missing!"}), 403
+        
+        # Split the header into parts
+        parts = auth_header.split()
+        if parts[0].lower() != 'bearer' or len(parts) != 2:
+            return jsonify({"error": "Invalid token format. Use Bearer <token>"}), 403
+        
+        token = parts[1]  # Get the token part
+        user_id = verify_token(token)
+        
+        if isinstance(user_id, str) and (user_id in ['Token expired. Please log in again.', 'Invalid token. Please log in again.']):
+            return jsonify({"error": user_id}), 403
+        
+        return f(user_id, *args, **kwargs)
+    return decorated
 
 # Get all meal logs
 @meal_logs_bp.route("/MealLogs", methods=["GET"])
