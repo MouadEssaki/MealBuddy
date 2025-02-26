@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
         gap: 12,
         margin: 20,
         marginTop: 0,
-        marginBottom: 40,
+        marginBottom: 120,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,

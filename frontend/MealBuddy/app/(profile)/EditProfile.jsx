@@ -1,48 +1,80 @@
 import React, { useState, useEffect } from "react";
-import { View, Image, TextInput, TouchableOpacity, StyleSheet, Text, Button } from "react-native";
+import {
+    View,
+    Image,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    Text,
+    Button,
+    ActivityIndicator,
+    Alert,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 
 export default function EditProfile() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [avatar, setAvatar] = useState(null);
-    const [bio, setBio] = useState("");  // Nouvel état pour la bio
+    const [bio, setBio] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const navigation = useNavigation();
 
+    // Load user data on component mount
     useEffect(() => {
         loadUserData();
     }, []);
 
     const loadUserData = async () => {
         try {
-            const token = await AsyncStorage.getItem('authToken');
-            const userId = await AsyncStorage.getItem('currentUser');
+            setLoading(true);
+            setError(null);
+            const token = await AsyncStorage.getItem("authToken");
+            const userId = await AsyncStorage.getItem("currentUser");
 
-            const response = await fetch(`https://mealbuddy-smartgroup2025.azurewebsites.net/api/users/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+            if (!token || !userId) {
+                throw new Error("Authentication data missing");
+            }
+
+            const response = await fetch(
+                `https://mealbuddy-smartgroup2025.azurewebsites.net/api/users/${userId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
                 }
-            });
+            );
 
             if (response.ok) {
                 const data = await response.json();
-                setUsername(data.username);
-                setEmail(data.email);
+                setUsername(data.username || "");
+                setEmail(data.email || "");
                 setAvatar(data.avatar || null);
-                setBio(data.bio || "");  // Charger la bio existante
+                setBio(data.bio || "");
+            } else {
+                throw new Error("Failed to fetch user data");
             }
-        } catch (error) {
-            console.error("Failed to load user data", error);
+        } catch (err) {
+            setError(err.message || "An error occurred while loading user data");
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleImagePick = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            Alert.alert("Permission Denied", "Permission to access camera roll is required!");
+            return;
+        }
+
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -55,51 +87,89 @@ export default function EditProfile() {
         }
     };
 
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    };
+
     const handleSave = async () => {
+        if (!validateEmail(email)) {
+            Alert.alert("Validation Error", "Please enter a valid email address");
+            return;
+        }
+
         try {
-            const token = await AsyncStorage.getItem('authToken');
-            const userId = await AsyncStorage.getItem('currentUser');
+            setLoading(true);
+            setError(null);
+            const token = await AsyncStorage.getItem("authToken");
+            const userId = await AsyncStorage.getItem("currentUser");
 
-            // Créer un objet avec les données à mettre à jour
+            if (!token || !userId) {
+                throw new Error("Authentication data missing");
+            }
+
             const updatedUserData = { username, email, avatar, bio };
-
-            // Si un mot de passe a été saisi, l'ajouter à l'objet
             if (password) {
                 updatedUserData.password = password;
             }
 
-            const response = await fetch(`https://mealbuddy-smartgroup2025.azurewebsites.net/api/users/${userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updatedUserData)
-            });
+            const response = await fetch(
+                `https://mealbuddy-smartgroup2025.azurewebsites.net/api/users/${userId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(updatedUserData),
+                }
+            );
 
             if (response.ok) {
-                console.log("Profile updated successfully");
+                Alert.alert("Success", "Profile updated successfully");
                 navigation.goBack();
             } else {
-                console.error("Failed to update profile", response.status);
+                throw new Error("Failed to update profile");
             }
-        } catch (error) {
-            console.error("Failed to update profile", error);
+        } catch (err) {
+            setError(err.message || "An error occurred while updating profile");
+        } finally {
+            setLoading(false);
         }
     };
 
+    // Render loading state
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#E36820" />
+            </View>
+        );
+    }
+
+    // Render error state
+    if (error) {
+        return (
+            <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+                <Button title="Retry" onPress={loadUserData} color="#E36820" />
+            </View>
+        );
+    }
+
+    // Main render
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={handleImagePick}>
+            <TouchableOpacity onPress={handleImagePick} style={styles.avatarContainer}>
                 <Image
-                    source={{ uri: avatar || 'https://randomuser.me/api/portraits/men/1.jpg' }}
-                    style={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 50,
-                        marginBottom: 20,
+                    source={{
+                        uri: avatar || "https://randomuser.me/api/portraits/men/1.jpg",
                     }}
+                    style={styles.avatar}
+                    accessible={true}
+                    accessibilityLabel="User avatar"
                 />
+                <Text style={styles.changeAvatarText}>Change Avatar</Text>
             </TouchableOpacity>
 
             <TextInput
@@ -107,6 +177,8 @@ export default function EditProfile() {
                 value={username}
                 onChangeText={setUsername}
                 style={styles.input}
+                accessible={true}
+                accessibilityLabel="Full name input"
             />
             <TextInput
                 placeholder="Email Address"
@@ -114,26 +186,36 @@ export default function EditProfile() {
                 onChangeText={setEmail}
                 style={styles.input}
                 keyboardType="email-address"
+                autoCapitalize="none"
+                accessible={true}
+                accessibilityLabel="Email address input"
             />
             <TextInput
-                placeholder="Password"
+                placeholder="Password (leave blank to keep current)"
                 value={password}
                 onChangeText={setPassword}
                 style={styles.input}
                 secureTextEntry
+                accessible={true}
+                accessibilityLabel="Password input"
             />
-
-            {/* Nouveau champ pour la bio */}
             <TextInput
                 placeholder="Bio"
                 value={bio}
                 onChangeText={setBio}
-                style={[styles.input, styles.bioInput]}  // Appliquer un style spécifique pour la bio
+                style={[styles.input, styles.bioInput]}
                 multiline
-                numberOfLines={4}  // Affiche plusieurs lignes pour la bio
+                numberOfLines={4}
+                accessible={true}
+                accessibilityLabel="Bio input"
             />
-
-            <Button onPress={handleSave} title="Save" color="#E36820" />
+            <Button
+                onPress={handleSave}
+                title="Save"
+                color="#E36820"
+                accessible={true}
+                accessibilityLabel="Save profile changes"
+            />
         </View>
     );
 }
@@ -142,10 +224,26 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: "#FFF",
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
+    },
+    errorText: {
+        color: "red",
+        marginBottom: 15,
+        textAlign: "center",
     },
     avatarContainer: {
-        alignSelf: 'center',
+        alignItems: "center",
         marginBottom: 20,
     },
     avatar: {
@@ -153,18 +251,25 @@ const styles = StyleSheet.create({
         height: 100,
         borderRadius: 50,
         borderWidth: 2,
-        borderColor: '#68AA64',
+        borderColor: "#68AA64",
+    },
+    changeAvatarText: {
+        marginTop: 10,
+        color: "#E36820",
+        fontSize: 16,
+        fontWeight: "500",
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ddd',
-        padding: 10,
+        borderColor: "#ddd",
+        padding: 12,
         borderRadius: 10,
         marginBottom: 15,
-        backgroundColor: '#f9f9f9',
+        backgroundColor: "#f9f9f9",
+        fontSize: 16,
     },
     bioInput: {
-        height: 100,  // Hauteur plus grande pour la bio
-        textAlignVertical: 'top',  // Texte aligné en haut
-    }
+        height: 100,
+        textAlignVertical: "top",
+    },
 });

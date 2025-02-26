@@ -30,29 +30,29 @@ const Register1 = ({ onNext, formData, setFormData, onBackToLogin }) => {
         // Reset error
         setError('');
 
-        // Check if all fields are filled
-        if (!username || !email || !password || !confirmPassword) {
-            setError('All fields are required');
-            return;
-        }
+        // // Check if all fields are filled
+        // if (!username || !email || !password || !confirmPassword) {
+        //     setError('All fields are required');
+        //     return;
+        // }
 
-        // Validate email format
-        if (!validateEmail(email)) {
-            setError('Please enter a valid email address');
-            return;
-        }
+        // // Validate email format
+        // if (!validateEmail(email)) {
+        //     setError('Please enter a valid email address');
+        //     return;
+        // }
 
-        // Validate password strength
-        if (!validatePassword(password)) {
-            setError('Password must be at least 8 characters long and contain uppercase, lowercase, and numbers');
-            return;
-        }
+        // // Validate password strength
+        // if (!validatePassword(password)) {
+        //     setError('Password must be at least 8 characters long and contain uppercase, lowercase, and numbers');
+        //     return;
+        // }
 
-        // Check if passwords match
-        if (password !== confirmPassword) {
-            setError('Passwords do not match');
-            return;
-        }
+        // // Check if passwords match
+        // if (password !== confirmPassword) {
+        //     setError('Passwords do not match');
+        //     return;
+        // }
 
         // If all validations pass, proceed to next step
         setFormData({ ...formData, username, email, password });
