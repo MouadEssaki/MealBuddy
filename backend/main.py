@@ -13,6 +13,9 @@ from MealPlans.test import calculer_apport_calorique
 from Research.Research import search_food
 from Recipes.recepeGenerator import generate_and_save_recipe
 from MealPlans.test import generate_weekly_meal_plan
+from MealPlans.test import calculer_apport_calorique
+from MealPlans.test import parse_response
+from MealPlans.test import parse_quantity
 # modif des fichiers pour aucune e3execution car sinon serveur mort
 
 def create_app():
@@ -97,8 +100,28 @@ def generate_recipe():
         return jsonify({"recipe_id": result['recipe_id'], "new_ingredients": result['new_ingredients']}), 201
     else:
         return jsonify({"error": result['message']}), 500
+    
+@app.route('/api/utils/generate_meal_plan', methods=['POST'])
+def generate_meal_plan():
+    data = request.get_json()
+    
+    user_id = data.get("user_id")
+    sexe = data.get("sexe")
+    poids = data.get("poids")
+    taille = data.get("taille")
+    age = data.get("age")
+    niveau_activite = data.get("niveau_activite")
+    objectif = data.get("objectif")
+    preferences = data.get("preferences", [])
+    
+    # Validate input data
+    if not user_id or not sexe or not poids or not taille or not age or not niveau_activite or not objectif:
+        return jsonify({"error": "Missing required fields"}), 400
 
-
+    # Call the generate_weekly_meal_plan function
+    result = generate_weekly_meal_plan(user_id, sexe, poids, taille, age, niveau_activite, objectif, preferences)
+    
+    return jsonify(result), 201
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000) #rm du port car azure choisit    host='0.0.0.0', port=8000

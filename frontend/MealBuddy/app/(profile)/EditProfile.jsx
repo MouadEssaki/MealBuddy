@@ -6,13 +6,14 @@ import {
     TouchableOpacity,
     StyleSheet,
     Text,
-    Button,
     ActivityIndicator,
     Alert,
+    ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 export default function EditProfile() {
     const [username, setUsername] = useState("");
@@ -151,14 +152,22 @@ export default function EditProfile() {
         return (
             <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
-                <Button title="Retry" onPress={loadUserData} color="#E36820" />
+                <TouchableOpacity onPress={loadUserData} style={styles.retryButton}>
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
             </View>
         );
     }
 
     // Main render
     return (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Edit Profile</Text>
+            </View>
+
+            {/* Avatar Section */}
             <TouchableOpacity onPress={handleImagePick} style={styles.avatarContainer}>
                 <Image
                     source={{
@@ -171,6 +180,7 @@ export default function EditProfile() {
                 <Text style={styles.changeAvatarText}>Change Avatar</Text>
             </TouchableOpacity>
 
+            {/* Input Fields */}
             <TextInput
                 placeholder="Full Name"
                 placeholderTextColor="#999"
@@ -212,20 +222,18 @@ export default function EditProfile() {
                 accessible={true}
                 accessibilityLabel="Bio input"
             />
-            <Button
-                onPress={handleSave}
-                title="Save"
-                color="#E36820"
-                accessible={true}
-                accessibilityLabel="Save profile changes"
-            />
-        </View>
+
+            {/* Save Button */}
+            <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexGrow: 1,
         padding: 20,
         backgroundColor: "#FFF",
     },
@@ -244,17 +252,42 @@ const styles = StyleSheet.create({
         color: "red",
         marginBottom: 15,
         textAlign: "center",
+        fontSize: 16,
     },
-    avatarContainer: {
+    retryButton: {
+        backgroundColor: "#E36820",
+        padding: 10,
+        borderRadius: 10,
+    },
+    retryButtonText: {
+        color: "#FFF",
+        fontSize: 16,
+        fontWeight: "500",
+    },
+    header: {
+        flexDirection: "row",
         alignItems: "center",
         marginBottom: 20,
     },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: "600",
+        color: "#333",
+    },
+    avatarContainer: {
+        alignItems: "center",
+        marginBottom: 30,
+    },
     avatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        borderWidth: 2,
-        borderColor: "#68AA64",
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderWidth: 3,
+        borderColor: "#E36820",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
     },
     changeAvatarText: {
         marginTop: 10,
@@ -265,14 +298,27 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         borderColor: "#ddd",
-        padding: 12,
+        padding: 15,
         borderRadius: 10,
-        marginBottom: 15,
+        marginBottom: 20,
         backgroundColor: "#f9f9f9",
         fontSize: 16,
+        color: "#333",
     },
     bioInput: {
-        height: 100,
+        height: 120,
         textAlignVertical: "top",
+    },
+    saveButton: {
+        backgroundColor: "#E36820",
+        padding: 15,
+        borderRadius: 10,
+        alignItems: "center",
+        marginTop: 20,
+    },
+    saveButtonText: {
+        color: "#FFF",
+        fontSize: 18,
+        fontWeight: "600",
     },
 });

@@ -8,12 +8,12 @@ import {
     TouchableOpacity,
     Alert,
     View,
-    FlatList,
+    ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { GlobalContext } from './GlobalState'; // Import the global context
+import { GlobalContext } from './GlobalState';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -30,19 +30,19 @@ export default function CreateRecipe() {
     const [title, setTitle] = useState('');
     const [steps, setSteps] = useState<string[]>([]);
     const [stepInput, setStepInput] = useState('');
-    const [isAiMode, setIsAiMode] = useState(false); // Toggle AI mode
-    const [selectedTheme, setSelectedTheme] = useState<string | null>(null); // Selected theme
+    const [isAiMode, setIsAiMode] = useState(false);
+    const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+    const [customTheme, setCustomTheme] = useState('');
     const navigation = useNavigation();
+    const [loading, setLoading] = useState(false);
 
-    // Access the global state for ingredients
     const { ingredients, setRecipeIngredients } = useContext(GlobalContext);
 
-    // Themes for AI mode
-    const themes = ['Italian', 'Mexican', 'Vegan', 'Low-Carb', 'Quick & Easy'];
+    const themes = ['Italian', 'Mexican', 'Vegan', 'Low-Carb', 'Quick & Easy', 'Custom'];
 
-    // Calculate total macros based on ingredients
     const calculateMacros = () => {
         const totals = {
+            calories: 0,
             proteins: 0,
             carbs: 0,
             fats: 0,
@@ -50,15 +50,22 @@ export default function CreateRecipe() {
         };
 
         ingredients.forEach((ingredient) => {
-            const grams = ingredient.grams || 0;
-            const ratio = grams / 100; 
-            totals.proteins += (ingredient.proteins || 0) * ratio;
-            totals.carbs += (ingredient.carbs || 0) * ratio;
-            totals.fats += (ingredient.fats || 0) * ratio;
-            totals.fiber += (ingredient.fiber || 0) * ratio;
+            // Simply add the absolute nutritional values without scaling
+            totals.calories += Number(ingredient.calories || 0);
+            totals.proteins += Number(ingredient.proteins || 0);
+            totals.carbs += Number(ingredient.carbs || 0);
+            totals.fats += Number(ingredient.fats || 0);
+            totals.fiber += Number(ingredient.fiber || 0);
         });
 
-        return totals;
+        // Round to 1 decimal place for consistency
+        return {
+            calories: Number(totals.calories.toFixed(1)),
+            proteins: Number(totals.proteins.toFixed(1)),
+            carbs: Number(totals.carbs.toFixed(1)),
+            fats: Number(totals.fats.toFixed(1)),
+            fiber: Number(totals.fiber.toFixed(1)),
+        };
     };
 
     const macros = calculateMacros();
@@ -67,10 +74,26 @@ export default function CreateRecipe() {
         if (stepInput.trim()) {
             setSteps([...steps, stepInput.trim()]);
             setStepInput('');
+        } else {
+            Alert.alert('Error', 'Step cannot be empty');
         }
     };
 
     const handleCreateRecipe = async () => {
+        if (!title.trim()) {
+            Alert.alert('Error', 'Recipe title cannot be empty');
+            return;
+        }
+        if (ingredients.length === 0) {
+            Alert.alert('Error', 'Please add at least one ingredient');
+            return;
+        }
+        if (steps.length === 0) {
+            Alert.alert('Error', 'Please add at least one step');
+            return;
+        }
+
+        setLoading(true);
         const userId = await AsyncStorage.getItem('currentUser');
 
         const recipeData = {
@@ -78,7 +101,7 @@ export default function CreateRecipe() {
             ingredients,
             steps,
             user_id: userId,
-            nutritional_info: macros, // Include calculated macros in the recipe data
+            nutritional_info: macros,
         };
 
         try {
@@ -92,32 +115,45 @@ export default function CreateRecipe() {
 
             if (response.ok) {
                 const result = await response.json();
-                Alert.alert('Success', `Recipe created with ID: ${result._id}`);
+                console.log('Recipe created:', result);
+                navigation.navigate('RecipesDetails', { recipe: result._id });
+                setLoading(false);
                 setTitle('');
                 setSteps([]);
+                setRecipeIngredients([]);
             } else {
                 const errorData = await response.json();
                 Alert.alert('Error', errorData.error || 'Failed to create recipe');
+                setLoading(false);
             }
         } catch (error) {
             console.error('Error creating recipe:', error);
-            Alert.alert('Error', 'An unexpected error occurred');
+            Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+            setLoading(false);
         }
     };
 
-    // Function to generate a recipe using AI
     const GenerateRecipe = async () => {
-        const userId = await AsyncStorage.getItem('currentUser');
-        const mandatoryIngredients = ingredients.map(ingredient => ingredient.name); // Extract ingredient names
-        const theme = selectedTheme; // Use the selected theme
-
-        if (!theme) {
+        if (ingredients.length === 0) {
+            Alert.alert('Error', 'Please add at least one ingredient to generate a recipe');
+            return;
+        }
+        if (!selectedTheme) {
             Alert.alert('Error', 'Please select a theme');
             return;
         }
+        if (selectedTheme === 'Custom' && !customTheme.trim()) {
+            Alert.alert('Error', 'Please enter a custom theme');
+            return;
+        }
+
+        setLoading(true);
+        const userId = await AsyncStorage.getItem('currentUser');
+        const mandatoryIngredients = ingredients.map(ingredient => ingredient.name);
+        const themeToSend = selectedTheme === 'Custom' ? customTheme.trim() : selectedTheme;
 
         try {
-            const response = await fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/generate_recipe', {
+            const response = await fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/utils/generate_recipe', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -125,30 +161,28 @@ export default function CreateRecipe() {
                 body: JSON.stringify({
                     user_id: userId,
                     mandatory_ingredients: mandatoryIngredients,
-                    theme: theme,
+                    theme: themeToSend,
                 }),
             });
 
-            // Log the raw response for debugging
             const rawResponse = await response.text();
             console.log('Raw Response:', rawResponse);
 
-            // Check if the response is JSON
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
 
-            // Parse the response as JSON
             const result = JSON.parse(rawResponse);
-
-            Alert.alert('Success', 'Recipe generated successfully!');
-            // Update the UI with the generated recipe details
+            navigation.navigate('RecipesDetails', { recipe: result.recipe_id });
+            setLoading(false);
             setTitle(result.recipe_title || 'Generated Recipe');
             setSteps(result.steps || []);
             setRecipeIngredients(result.ingredients || []);
+            if (selectedTheme === 'Custom') setCustomTheme('');
         } catch (error) {
             console.error('Error generating recipe:', error);
-            Alert.alert('Error', 'Failed to generate recipe. Please check the server and try again.');
+            Alert.alert('Error', 'Failed to generate recipe. Please check your connection and try again.');
+            setLoading(false);
         }
     };
 
@@ -161,7 +195,6 @@ export default function CreateRecipe() {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                {/* Title Card */}
                 <LinearGradient
                     colors={[COLORS.vert, '#1a7a4e']}
                     style={styles.header}
@@ -169,21 +202,20 @@ export default function CreateRecipe() {
                     <Text style={styles.headerTitle}>Create Recipe</Text>
                 </LinearGradient>
 
-                {/* Use AI Button */}
                 <TouchableOpacity
                     style={styles.generateButton}
-                    onPress={() => setIsAiMode(!isAiMode)} // Toggle AI mode
+                    onPress={() => setIsAiMode(!isAiMode)}
+                    disabled={loading}
                 >
                     <LinearGradient
                         colors={isAiMode ? [COLORS.vertClaire, COLORS.vert] : [COLORS.vert, COLORS.vertClaire]}
                         style={styles.gradientButton}
-                        start={{ x: 0, y: 0 }} // Gradient starts from the top-left
-                        end={{ x: 1, y: 1 }} // Gradient ends at the bottom-right
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
                     >
-                        {/* Add an icon */}
                         <Icon
-                            name={isAiMode ? 'robot-off' : 'robot'} // Use different icons for AI mode and normal mode
-                            size={24} // Slightly larger icon
+                            name={isAiMode ? 'robot-off' : 'robot'}
+                            size={24}
                             color={COLORS.white}
                             style={styles.icon}
                         />
@@ -191,7 +223,6 @@ export default function CreateRecipe() {
                     </LinearGradient>
                 </TouchableOpacity>
 
-                {/* Recipe Title Input */}
                 {!isAiMode && (
                     <View style={styles.card}>
                         <View style={styles.sectionHeader}>
@@ -201,13 +232,14 @@ export default function CreateRecipe() {
                         <TextInput
                             style={styles.input}
                             placeholder="Enter recipe title"
+                            placeholderTextColor={COLORS.vert}
                             value={title}
                             onChangeText={setTitle}
+                            editable={!loading}
                         />
                     </View>
                 )}
 
-                {/* Ingredients Card */}
                 <View style={styles.card}>
                     <View style={styles.sectionHeader}>
                         <Icon name="format-list-checks" size={24} color={COLORS.vert} />
@@ -223,6 +255,7 @@ export default function CreateRecipe() {
                                 <TouchableOpacity
                                     onPress={() => handleDelete(index)}
                                     style={styles.deleteButton}
+                                    disabled={loading}
                                 >
                                     <Icon name="trash-can-outline" size={20} color={COLORS.orange} />
                                 </TouchableOpacity>
@@ -233,7 +266,8 @@ export default function CreateRecipe() {
                     )}
                     <TouchableOpacity
                         style={styles.addButton}
-                        onPress={() => navigation.navigate('AddIngredient')}
+                        onPress={() => navigation.navigate('AddIngredient', { isAiMode })}
+                        disabled={loading}
                     >
                         <LinearGradient
                             colors={[COLORS.orange, '#f05a1a']}
@@ -245,7 +279,6 @@ export default function CreateRecipe() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Theme Card (Visible only in AI mode) */}
                 {isAiMode && (
                     <View style={styles.card}>
                         <View style={styles.sectionHeader}>
@@ -260,6 +293,7 @@ export default function CreateRecipe() {
                                     selectedTheme === theme && styles.selectedThemeButton,
                                 ]}
                                 onPress={() => setSelectedTheme(theme)}
+                                disabled={loading}
                             >
                                 <Text
                                     style={[
@@ -271,10 +305,19 @@ export default function CreateRecipe() {
                                 </Text>
                             </TouchableOpacity>
                         ))}
+                        {selectedTheme === 'Custom' && (
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter your custom theme"
+                                placeholderTextColor={COLORS.vert}
+                                value={customTheme}
+                                onChangeText={setCustomTheme}
+                                editable={!loading}
+                            />
+                        )}
                     </View>
                 )}
 
-                {/* Steps Card (Visible only in non-AI mode) */}
                 {!isAiMode && (
                     <View style={styles.card}>
                         <View style={styles.sectionHeader}>
@@ -288,6 +331,17 @@ export default function CreateRecipe() {
                                         <Text style={styles.stepNumberText}>{index + 1}</Text>
                                     </View>
                                     <Text style={styles.instructionText}>{step}</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            const newSteps = [...steps];
+                                            newSteps.splice(index, 1);
+                                            setSteps(newSteps);
+                                        }}
+                                        style={styles.deleteButton}
+                                        disabled={loading}
+                                    >
+                                        <Icon name="trash-can-outline" size={20} color={COLORS.orange} />
+                                    </TouchableOpacity>
                                 </View>
                             ))
                         ) : (
@@ -296,10 +350,16 @@ export default function CreateRecipe() {
                         <TextInput
                             style={styles.input}
                             placeholder="Add a step"
+                            placeholderTextColor={COLORS.vert}
                             value={stepInput}
                             onChangeText={setStepInput}
+                            editable={!loading}
                         />
-                        <TouchableOpacity style={styles.addButton} onPress={handleAddStep}>
+                        <TouchableOpacity
+                            style={styles.addButton}
+                            onPress={handleAddStep}
+                            disabled={loading}
+                        >
                             <LinearGradient
                                 colors={[COLORS.orange, '#f05a1a']}
                                 style={styles.gradientButton}
@@ -311,57 +371,65 @@ export default function CreateRecipe() {
                     </View>
                 )}
 
-                {/* Nutrition Card (Visible only in non-AI mode) */}
                 {!isAiMode && (
                     <View style={[styles.card, { marginBottom: 30 }]}>
                         <View style={styles.sectionHeader}>
                             <MaterialCommunityIcons name="nutrition" size={24} color={COLORS.vert} />
                             <Text style={styles.sectionTitle}>Estimated Macros</Text>
+
                         </View>
+                        <View style={styles.metaItem}>
+                                <MaterialCommunityIcons name="fire" size={20} color={COLORS.vert} />
+                                <Text style={styles.metaText}>{macros.calories || '0'} kcal</Text>
+                            </View>
                         <View style={styles.nutritionGrid}>
                             <View style={styles.nutritionItem}>
                                 <Text style={styles.nutritionValue}>
-                                    {macros.proteins.toFixed(1)}
+                                    {macros.proteins}
                                 </Text>
                                 <Text style={styles.nutritionLabel}>Protein (g)</Text>
                             </View>
                             <View style={styles.nutritionItem}>
                                 <Text style={styles.nutritionValue}>
-                                    {macros.carbs.toFixed(1)}
+                                    {macros.carbs}
                                 </Text>
                                 <Text style={styles.nutritionLabel}>Carbs (g)</Text>
                             </View>
                             <View style={styles.nutritionItem}>
                                 <Text style={styles.nutritionValue}>
-                                    {macros.fats.toFixed(1)}
+                                    {macros.fats}
                                 </Text>
                                 <Text style={styles.nutritionLabel}>Fat (g)</Text>
                             </View>
                             <View style={styles.nutritionItem}>
                                 <Text style={styles.nutritionValue}>
-                                    {macros.fiber.toFixed(1)}
+                                    {macros.fiber}
                                 </Text>
                                 <Text style={styles.nutritionLabel}>Fiber (g)</Text>
                             </View>
+
                         </View>
                     </View>
                 )}
 
-                {/* Create Recipe / Generate Button */}
                 <TouchableOpacity
                     style={styles.createButton}
                     onPress={isAiMode ? GenerateRecipe : handleCreateRecipe}
+                    disabled={loading}
                 >
-                    <Text style={styles.createButtonText}>
-                        {isAiMode ? 'Generate' : 'Create Recipe'}
-                    </Text>
+                    {loading ? (
+                        <ActivityIndicator color={COLORS.white} />
+                    ) : (
+                        <Text style={styles.createButtonText}>
+                            {isAiMode ? 'Generate' : 'Create Recipe'}
+                        </Text>
+                    )}
                 </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
     );
 }
 
-// Styles
 const styles = StyleSheet.create({
     header: {
         paddingHorizontal: 24,
@@ -382,24 +450,6 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         paddingBottom: 40,
-    },
-    titleCard: {
-        backgroundColor: COLORS.white,
-        borderRadius: 16,
-        padding: 20,
-        marginHorizontal: 16,
-        marginTop: 16,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: '800',
-        color: COLORS.vert,
-        textAlign: 'center',
     },
     card: {
         backgroundColor: COLORS.white,
@@ -422,6 +472,16 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: '700',
         color: COLORS.vert,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    metaText: {
+        fontSize: 16,
+        color: COLORS.vert,
+        fontWeight: '600',
     },
     input: {
         height: 50,
@@ -458,6 +518,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 16,
         paddingVertical: 12,
+        alignItems: 'center',
     },
     stepNumber: {
         width: 30,
@@ -490,31 +551,31 @@ const styles = StyleSheet.create({
     },
     generateButton: {
         marginTop: 20,
-        borderRadius: 25, // Rounded corners
-        overflow: 'hidden', // Ensures the gradient doesn't overflow
+        borderRadius: 25,
+        overflow: 'hidden',
         marginHorizontal: 16,
         marginBottom: 20,
-        shadowColor: '#000', // Shadow for depth
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 6,
-        elevation: 5, // Adds shadow on Android
+        elevation: 5,
     },
     gradientButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 15, // More padding for a larger button
-        paddingHorizontal: 25, // More padding for a larger button
+        paddingVertical: 15,
+        paddingHorizontal: 25,
     },
     icon: {
-        marginRight: 10, // Space between icon and text
+        marginRight: 10,
     },
     buttonText: {
         color: COLORS.white,
-        fontSize: 18, // Slightly larger text
-        fontWeight: '700', // Bold text
-        marginLeft: 10, // Space between icon and text
+        fontSize: 18,
+        fontWeight: '700',
+        marginLeft: 10,
     },
     createButton: {
         backgroundColor: COLORS.vert,
@@ -570,5 +631,8 @@ const styles = StyleSheet.create({
     },
     selectedThemeText: {
         color: COLORS.white,
+    },
+    deleteButton: {
+        padding: 5,
     },
 });

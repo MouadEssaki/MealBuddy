@@ -13,8 +13,10 @@ import {
 import { useNavigation } from 'expo-router';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GlobalContext } from './GlobalState'; // Import the global context
+import { useLocalSearchParams } from 'expo-router';
 
 const COLORS = {
     vertClaire: '#68AA64',
@@ -26,6 +28,7 @@ const COLORS = {
 };
 
 export default function AddIngredient() {
+    const { isAiMode } = useLocalSearchParams() as { isAiMode: boolean };
     const [research, setResearch] = useState('');
     const [meal, setMeal] = useState([]);
     const [filteredMeal, setFilteredMeal] = useState([]);
@@ -123,25 +126,29 @@ export default function AddIngredient() {
 
     // Function to handle selecting an ingredient and opening the grams input modal
     const handleSelectIngredient = (ingredient) => {
+
         setSelectedIngredient(ingredient);
+        setResearch(''); // Reset search input
         setGrams(''); // Reset grams input
+
     };
+
 
     // Function to confirm the ingredient with the specified grams
     const handleConfirmIngredient = () => {
         if (!selectedIngredient || !grams) return;
-    
+
         const gramsValue = parseFloat(grams);
         if (isNaN(gramsValue) || gramsValue <= 0) return; // Ensure valid input
-    
+
         const { nutritional_info, quantity_measurement } = selectedIngredient;
         const defaultGrams = parseFloat(quantity_measurement); // Extract the default grams
-    
+
         if (isNaN(defaultGrams) || defaultGrams <= 0) return; // Ensure valid default grams
-    
+
         // Calculate macros based on custom grams input
-        const scaleFactor = gramsValue / defaultGrams; 
-    
+        const scaleFactor = gramsValue / defaultGrams;
+
         const ingredientWithGrams = {
             name: selectedIngredient.name,
             grams: gramsValue, // Custom grams input
@@ -154,16 +161,22 @@ export default function AddIngredient() {
             sodium: (nutritional_info.sodium * scaleFactor).toFixed(2),
             cholesterol: (nutritional_info.cholesterol * scaleFactor).toFixed(2),
         };
-    
+
         setRecipeIngredients([...ingredients, ingredientWithGrams]); // Update global state
         setSelectedIngredient(null); // Close the modal
         setGrams(''); // Reset grams input
     };
-    
+
 
     // Function to handle going back
     const handleGoBack = () => {
         navigation.goBack(); // Navigate back to the previous screen
+    };
+
+    const handleDelete = (index: number) => {
+        const newIngredients = [...ingredients];
+        newIngredients.splice(index, 1);
+        setRecipeIngredients(newIngredients);
     };
 
     return (
@@ -251,6 +264,7 @@ export default function AddIngredient() {
                                 style={styles.modalInput}
                                 placeholder="e.g., 100"
                                 keyboardType="numeric"
+                                placeholderTextColor={COLORS.vert}
                                 value={grams}
                                 onChangeText={setGrams}
                             />
@@ -324,10 +338,19 @@ export default function AddIngredient() {
                         <Text style={styles.recipeTitle}>Current Recipe Ingredients:</Text>
                         {ingredients.map((ingredient, index) => (
                             <View key={index} style={styles.ingredientItem}>
-                                <Text style={styles.ingredientName}>{ingredient.name}</Text>
-                                <Text style={styles.ingredientDetails}>
-                                    {ingredient.grams}g
-                                </Text>
+                                <View style={styles.ingredientTextContainer}>
+                                    <Text style={styles.ingredientName}>{ingredient.name}</Text>
+                                    <Text style={styles.ingredientDetails}>
+                                        {ingredient.grams}g
+                                    </Text>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={() => handleDelete(index)}
+                                    style={styles.deleteButton}
+                                    disabled={loading} // Disable delete button while loading
+                                >
+                                    <MaterialCommunityIcons name="trash-can-outline" size={20} color={COLORS.orange} />
+                                </TouchableOpacity>
                             </View>
                         ))}
                     </View>
@@ -508,7 +531,19 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     ingredientItem: {
-        marginBottom: 10,
+        flexDirection: 'row',           // Arrange children in a row
+        alignItems: 'center',           // Center items vertically
+        paddingVertical: 8,             // Add some vertical padding
+        borderBottomWidth: 1,           // Optional: separator line
+        borderBottomColor: '#eee',      // Optional: light separator
+    },
+    ingredientTextContainer: {
+        flex: 1,                        // Take up remaining space
+        flexDirection: 'column',        // Stack name and details vertically
+    },
+    deleteButton: {
+        marginLeft: 'auto',             // Push button to the right
+        padding: 5,                     // Add touchable area
     },
     ingredientName: {
         fontSize: 16,
@@ -523,6 +558,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         overflow: 'hidden',
         marginTop: 30,
+        marginBottom: 50,
     },
     modalContainer: {
         flex: 1,

@@ -8,12 +8,14 @@ import {
     TextInput,
     Text,
     TouchableOpacity,
-    SafeAreaView
+    SafeAreaView,
+    Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
     vertClaire: '#68AA64',
@@ -21,21 +23,31 @@ const COLORS = {
     orange: '#E36820',
     beige: '#FFF4E4',
     white: '#FFFFFF',
-    background: '#F9F9F9'
+    background: '#F9F9F9',
 };
 
 export default function RecipesScreen() {
     const [recipesData, setRecipesData] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredRecipes, setFilteredRecipes] = useState([]);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const navigation = useNavigation();
 
+    // Fetch current user ID from AsyncStorage
     useEffect(() => {
-        fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/recipes')
-            .then(response => response.json())
-            .then(data => setRecipesData(data));
+        const getUserId = async () => {
+            const userId = await AsyncStorage.getItem('currentUser');
+            setCurrentUserId(userId);
+        };
+        getUserId();
     }, []);
 
+    // Fetch recipes initially
+    useEffect(() => {
+        fetchRecipes();
+    }, []);
+
+    // Filter recipes based on search query
     useEffect(() => {
         setFilteredRecipes(
             recipesData.filter(recipe =>
@@ -51,10 +63,50 @@ export default function RecipesScreen() {
     const fetchRecipes = () => {
         fetch('https://mealbuddy-smartgroup2025.azurewebsites.net/api/recipes')
             .then(response => response.json())
-            .then(data => setRecipesData(data));
+            .then(data => setRecipesData(data))
+            .catch(error => console.error('Error fetching recipes:', error));
     };
 
-    useFocusEffect(useCallback(() => { fetchRecipes(); }, [searchQuery]));
+    useFocusEffect(useCallback(() => { fetchRecipes(); }, []));
+
+    const handleDeleteRecipe = async (recipeId: string) => {
+        Alert.alert(
+            'Confirm Delete',
+            'Are you sure you want to delete this recipe?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const response = await fetch(
+                                `https://mealbuddy-smartgroup2025.azurewebsites.net/api/recipes/${recipeId}`,
+                                {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                }
+                            );
+
+                            if (response.ok) {
+                                // Remove the deleted recipe from the state
+                                setRecipesData(recipesData.filter(recipe => recipe._id !== recipeId));
+                                Alert.alert('Success', 'Recipe deleted successfully');
+                            } else {
+                                const errorData = await response.json();
+                                Alert.alert('Error', errorData.error || 'Failed to delete recipe');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting recipe:', error);
+                            Alert.alert('Error', 'An unexpected error occurred');
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -133,9 +185,20 @@ export default function RecipesScreen() {
                                         ))}
                                     </View>
 
-                                    <View style={styles.viewButton}>
-                                        <Text style={styles.viewButtonText}>View Recipe</Text>
-                                        <Icon name="arrow-right" size={16} color={COLORS.white} />
+                                    <View style={styles.buttonContainer}>
+                                        <View style={styles.viewButton}>
+                                            <Text style={styles.viewButtonText}>View Recipe</Text>
+                                            <Icon name="arrow-right" size={16} color={COLORS.white} />
+                                        </View>
+                                        {/* Delete Button for User's Recipes */}
+                                        {recipe.user_id === currentUserId && (
+                                            <TouchableOpacity
+                                                style={styles.deleteButton}
+                                                onPress={() => handleDeleteRecipe(recipe._id)}
+                                            >
+                                                <Icon name="trash-can-outline" size={20} color={COLORS.orange} />
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 </View>
                             </Pressable>
@@ -228,7 +291,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
-
     },
     recipeImage: {
         width: '100%',
@@ -263,6 +325,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginBottom: 20,
     },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     viewButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -277,5 +344,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         marginRight: 10,
+    },
+    deleteButton: {
+        padding: 10,
     },
 });

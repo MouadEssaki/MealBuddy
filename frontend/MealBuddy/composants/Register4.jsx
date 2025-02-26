@@ -4,17 +4,17 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FOOD_COLORS = {
-    vertClaire: "#68AA64",
-    vert: "#105F3B",
+    lightGreen: "#68AA64",
+    green: "#105F3B",
     orange: "#E36820",
     beige: "#FFF4E4",
 };
 
 const PREFERENCE_OPTIONS = [
-    { id: 'noix', title: "Allergie aux noix", icon: "peanut-off" },
-    { id: 'vegetarien', title: "Végétarien", icon: "leaf" },
-    { id: 'sansGluten', title: "Sans gluten", icon: "barley-off" },
-    { id: 'rien', title: "Aucune préférence particulière", icon: "check-circle" },
+    { id: 'nuts', title: "Nut Allergy", icon: "peanut-off" },
+    { id: 'vegetarian', title: "Vegetarian", icon: "leaf" },
+    { id: 'glutenFree', title: "Gluten-Free", icon: "barley-off" },
+    { id: 'none', title: "No Specific Preferences", icon: "check-circle" },
 ];
 
 const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) => {
@@ -25,24 +25,24 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
     const isSubmitDisabled = useMemo(() => preferences.length === 0, [preferences]);
 
     const handlePreferenceToggle = (preference) => {
-        if (preference === 'rien') {
-            setPreferences(['rien']);
+        if (preference === 'none') {
+            setPreferences(['none']);
             setAddedCustomPreferences([]);
         } else {
             setPreferences((prev) => {
-                if (prev.includes('rien')) {
+                if (prev.includes('none')) {
                     return [preference];
                 }
                 return prev.includes(preference)
                     ? prev.filter((p) => p !== preference)
-                    : [...prev.filter(p => p !== 'rien'), preference];
+                    : [...prev.filter(p => p !== 'none'), preference];
             });
         }
     };
 
     const handleAddCustomPreference = () => {
-        if (customPreference && !preferences.includes(customPreference) && !addedCustomPreferences.includes(customPreference)) {
-            setPreferences(prev => [...prev.filter(p => p !== 'rien'), customPreference]);
+        if (customPreference && !preferences.includes(customPreference)) {
+            setPreferences(prev => [...prev.filter(p => p !== 'none'), customPreference]);
             setAddedCustomPreferences(prev => [...prev, customPreference]);
             setCustomPreference('');
         }
@@ -55,18 +55,16 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
 
     const [isLoading, setIsLoading] = useState(false);
 
-
     const handleAuthSuccess = async (token, id) => {
         try {
             await AsyncStorage.setItem('authToken', token);
-            await AsyncStorage.setItem('currentUser', id.toString()); // Ensure id is a string
+            await AsyncStorage.setItem('currentUser', id.toString());
             console.log('Authentication successful: Token stored in AsyncStorage');
             onAuthSuccess(token);
         } catch (error) {
             console.error('Error storing token in AsyncStorage:', error);
         }
     };
-
 
     const handleSubmit = async () => {
         if (isLoading) return; // Prevent multiple clicks
@@ -109,7 +107,7 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
                             alert('Failed to save credentials.');
                         }
                         console.log('Login successful:', loginData);
-                        await handleAuthSuccess(loginData.token, loginData.user._id); // Changed from .id to ._id
+                        await handleAuthSuccess(loginData.token, loginData.user._id);
                     } else {
                         console.error('No token or user in login response');
                         alert('Registration succeeded, but login failed: No token or user data received.');
@@ -130,18 +128,17 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
         }
     };
 
-
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.content}>
                 <MaterialCommunityIcons
                     name="food-apple"
                     size={48}
-                    color={FOOD_COLORS.vert}
+                    color={FOOD_COLORS.green}
                     style={styles.logo}
                 />
-                <Text style={styles.title}>Vos préférences alimentaires</Text>
-                <Text style={styles.subtitle}>Personnalisez votre expérience culinaire</Text>
+                <Text style={styles.title}>Your Dietary Preferences</Text>
+                <Text style={styles.subtitle}>Customize your culinary experience</Text>
                 <View style={styles.card}>
                     {PREFERENCE_OPTIONS.map((option) => (
                         <TouchableOpacity
@@ -155,7 +152,7 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
                             <MaterialCommunityIcons
                                 name={option.icon}
                                 size={24}
-                                color={preferences.includes(option.id) ? FOOD_COLORS.orange : FOOD_COLORS.vert}
+                                color={preferences.includes(option.id) ? FOOD_COLORS.orange : FOOD_COLORS.green}
                             />
                             <Text style={[
                                 styles.preferenceText,
@@ -183,14 +180,14 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
                             style={styles.customPreferenceInput}
                             value={customPreference}
                             onChangeText={setCustomPreference}
-                            placeholder="Ajouter une préférence personnalisée"
-                            placeholderTextColor={FOOD_COLORS.vertClaire}
+                            placeholder="Add a custom preference"
+                            placeholderTextColor={FOOD_COLORS.lightGreen}
                         />
                         <TouchableOpacity
                             style={styles.addCustomButton}
                             onPress={handleAddCustomPreference}
                         >
-                            <MaterialCommunityIcons name="plus" size={24} color={FOOD_COLORS.vert} />
+                            <MaterialCommunityIcons name="plus" size={24} color={FOOD_COLORS.green} />
                         </TouchableOpacity>
                     </View>
                     <TouchableOpacity
@@ -199,15 +196,15 @@ const Register4 = ({ onAuthSuccess, formData, setStep, onBack, onBackToLogin }) 
                         style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
                     >
                         <Text style={styles.submitButtonText}>
-                            {isLoading ? 'Chargement...' : 'Terminer l\'inscription'}
+                            {isLoading ? 'Loading...' : 'Complete Registration'}
                         </Text>
                     </TouchableOpacity>
                     <View style={styles.navigationButtons}>
                         <TouchableOpacity style={styles.backButton} onPress={onBack}>
-                            <Text style={styles.backButtonText}>← Retour</Text>
+                            <Text style={styles.backButtonText}>← Back</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.loginButton} onPress={onBackToLogin}>
-                            <Text style={styles.loginButtonText}>Retour à la connexion</Text>
+                            <Text style={styles.loginButtonText}>Back to Login</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -231,13 +228,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: '700',
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
         textAlign: 'center',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: FOOD_COLORS.vertClaire,
+        color: FOOD_COLORS.lightGreen,
         textAlign: 'center',
         marginBottom: 32,
     },
@@ -245,7 +242,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 16,
         padding: 24,
-        shadowColor: FOOD_COLORS.vert,
+        shadowColor: FOOD_COLORS.green,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
@@ -267,7 +264,7 @@ const styles = StyleSheet.create({
     preferenceText: {
         marginLeft: 12,
         fontSize: 16,
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
     },
     selectedPreferenceText: {
         color: FOOD_COLORS.orange,
@@ -281,11 +278,11 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 48,
         borderWidth: 1,
-        borderColor: FOOD_COLORS.vertClaire,
+        borderColor: FOOD_COLORS.lightGreen,
         borderRadius: 8,
         paddingHorizontal: 12,
         fontSize: 16,
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
     },
     addCustomButton: {
         width: 48,
@@ -304,7 +301,7 @@ const styles = StyleSheet.create({
         marginTop: 24,
     },
     submitButtonDisabled: {
-        backgroundColor: FOOD_COLORS.vertClaire,
+        backgroundColor: FOOD_COLORS.lightGreen,
         opacity: 0.5,
     },
     submitButtonText: {
@@ -324,7 +321,7 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     backButtonText: {
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
         fontSize: 14,
     },
     loginButton: {
@@ -346,7 +343,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     customPreferenceText: {
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
         fontSize: 16,
     },
     removeCustomButton: {

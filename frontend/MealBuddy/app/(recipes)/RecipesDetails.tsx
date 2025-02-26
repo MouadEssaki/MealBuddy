@@ -22,6 +22,11 @@ export default function RecipesDetails() {
             .then(data => setRecipeData(data));
     }, [recipe]);
 
+    const cleanStepText = (step) => {
+        // Remove patterns like "1.", "2.", "10.", etc., followed by a space or at the start
+        return step.replace(/^\d+\.\s*/, '').trim();
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -63,7 +68,7 @@ export default function RecipesDetails() {
                             <View key={index} style={styles.ingredientItem}>
                                 <View style={styles.bulletPoint} />
                                 <Text style={styles.ingredientText}>
-                                    {`${ingredient.quantity || ''} ${ingredient.quantity_description || ''} ${ingredient.name || ''}`}
+                                    {`${ingredient.quantity_measurement || ''} ${ingredient.quantity_description || ''} ${ingredient.name || ''}`}
                                 </Text>
                             </View>
                         ))
@@ -84,7 +89,7 @@ export default function RecipesDetails() {
                                 <View style={styles.stepNumber}>
                                     <Text style={styles.stepNumberText}>{index + 1}</Text>
                                 </View>
-                                <Text style={styles.instructionText}>{step}</Text>
+                                <Text style={styles.instructionText}>{cleanStepText(step)}</Text>
                             </View>
                         ))
                     ) : (

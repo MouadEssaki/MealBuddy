@@ -56,6 +56,19 @@ export default function Profile() {
         }, []) // Add dependency here
     );
 
+    const getGoalText = (goal) => {
+        switch (goal) {
+            case 'loss':
+                return 'Weight Loss';
+            case 'maintain':
+                return 'Maintain Weight';
+            case 'gain':
+                return 'Weight Gain';
+            default:
+                return goal || "No current goal set"
+        }
+    }
+
 
 
     const fetchUserInfo = async () => {
@@ -132,7 +145,7 @@ export default function Profile() {
             }
         }
     }, [user]);
-    
+
     const deconnexion = async () => {
         //console.log(await AsyncStorage.getItem('authToken'));
         //console.log(await AsyncStorage.getItem('currentUser'));
@@ -286,7 +299,7 @@ export default function Profile() {
                                         </Text>
                                     </View>
                                     <Text category='s1' style={{ color: customTheme.vert, marginTop: 5 }}>
-                                        {user.goal || "No current goal set"}
+                                        {getGoalText(user.goal)}
                                     </Text>
                                 </TouchableOpacity>
 
