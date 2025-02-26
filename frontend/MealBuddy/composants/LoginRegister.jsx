@@ -45,7 +45,8 @@ const LoginRegister = ({ onAuthSuccess }) => {
     };
 
     const handleAuthSuccess = (token) => {
-        console.log('Authentication successful:', token);
+        // Store the token or perform any other action after successful authentication
+        console.log('Authentication successful:');
         onAuthSuccess(token);
     };
 

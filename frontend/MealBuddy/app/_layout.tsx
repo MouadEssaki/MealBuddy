@@ -220,7 +220,7 @@ export default function Layout() {
               }}
             />
             <Tabs.Screen
-              name="Profile"
+              name="(profile)"
               options={{
                 tabBarIcon: ({ focused }) => (
                   <AnimatedTabIcon
