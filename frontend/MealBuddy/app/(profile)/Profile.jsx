@@ -56,14 +56,7 @@ export default function Profile() {
         }, []) // Add dependency here
     );
 
-    useEffect(() => {
-        if (user && user.nutritionalGoals) {
-            const totalCalories = user.nutritionalGoals.calories;
-            if (totalCalories) {
-                checkStreak({ totalCalories, setStreak });
-            }
-        }
-    }, [user]);
+
 
     const fetchUserInfo = async () => {
         try {
@@ -131,6 +124,15 @@ export default function Profile() {
         }
     };
 
+    useEffect(() => {
+        if (user && user.nutritionalGoals) {
+            const totalCalories = user.nutritionalGoals.calories;
+            if (totalCalories) {
+                checkStreak({ totalCalories, setStreak });
+            }
+        }
+    }, [user]);
+    
     const deconnexion = async () => {
         //console.log(await AsyncStorage.getItem('authToken'));
         //console.log(await AsyncStorage.getItem('currentUser'));
