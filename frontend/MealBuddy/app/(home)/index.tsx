@@ -145,7 +145,7 @@ export default function App() {
 
       const data = await response.json();
       setUser({
-        username: data.name,
+        username: data.username,
         email: data.email,
         avatar: data.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
         bio: data.bio,
