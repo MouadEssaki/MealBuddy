@@ -120,8 +120,8 @@ export default function Profile() {
 
             setstats([
                 { icon: 'user-clock', label: 'Age', value: data.age },
-                { icon: 'ruler', label: 'height', value: data.height },
-                { icon: 'balance-scale', label: 'Weight', value: data.weight },
+                { icon: 'ruler', label: 'height', value: data.height + " cm" },
+                { icon: 'balance-scale', label: 'Weight', value: data.weight + " kg" },
                 { icon: 'transgender', label: 'Gender', value: data.gender },
             ])
 
@@ -241,18 +241,20 @@ export default function Profile() {
                                         padding: 15,
                                         marginBottom: 15
                                     }}>
-                                        <IconFA5
-                                            name={stat.icon}
-                                            size={24}
-                                            color={customTheme.orange}
-                                            style={{ marginBottom: 10 }}
-                                        />
-                                        <Text category='h5' style={{ color: customTheme.vert, fontWeight: '700' }}>
-                                            {stat.value}
-                                        </Text>
-                                        <Text category='label' style={{ color: customTheme.vert, opacity: 0.7 }}>
-                                            {stat.label}
-                                        </Text>
+                                        <TouchableOpacity onPress={() => navigation.navigate('EditMoreInfo')}>
+                                            <IconFA5
+                                                name={stat.icon}
+                                                size={24}
+                                                color={customTheme.orange}
+                                                style={{ marginBottom: 10 }}
+                                            />
+                                            <Text category='h5' style={{ color: customTheme.vert, fontWeight: '700' }}>
+                                                {stat.value}
+                                            </Text>
+                                            <Text category='label' style={{ color: customTheme.vert, opacity: 0.7 }}>
+                                                {stat.label}
+                                            </Text>
+                                        </TouchableOpacity>
                                     </View>
                                 ))}
                             </View>
@@ -370,7 +372,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         marginTop: 25,
-        
+
     },
     gradient: {
         padding: 20,

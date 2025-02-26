@@ -53,7 +53,7 @@ export default function ProfileLayout() {
             <Stack.Screen
                 name="EditGoal"
                 options={{
-                    headerTitle: () => <HeaderTitle title="EditGoal" />,
+                    headerTitle: () => <HeaderTitle title="Edit Goal" />,
                 }}
             />
 
@@ -61,6 +61,13 @@ export default function ProfileLayout() {
                 name="EditProfile"
                 options={{
                     headerTitle: () => <HeaderTitle title="Edit Profile" />,
+                }}
+            />
+
+            <Stack.Screen
+                name="EditMoreInfo"
+                options={{
+                    headerTitle: () => <HeaderTitle title="Edit More Info" />,
                 }}
             />
         </Stack>
