@@ -49,6 +49,10 @@ export default function Layout() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
+    console.log('authToken updated:', authToken);
+  }, [authToken]);
+
+  useEffect(() => {
     const checkAuthToken = async () => {
       try {
         const token = await AsyncStorage.getItem('authToken');
@@ -105,6 +109,11 @@ export default function Layout() {
   };
 
   const handleAuthSuccess = async (token) => {
+    if (!token) {
+      console.error('Received undefined token');
+      return;
+    }
+    console.log('Setting authToken:', token);
     setAuthToken(token);
     await AsyncStorage.setItem('authToken', token);
   };
