@@ -301,19 +301,24 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 3,
+        marginBottom: 10,
+
     },
     searchIcon: {
         marginRight: 12,
+        
     },
     input: {
         flex: 1,
         fontSize: 16,
         color: COLORS.vert,
+        
     },
     contentContainer: {
         paddingHorizontal: 24,
         paddingTop: 24,
         paddingBottom: 40,
+
     },
     loadingContainer: {
         alignItems: 'center',

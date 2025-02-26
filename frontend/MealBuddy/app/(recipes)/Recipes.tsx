@@ -57,104 +57,108 @@ export default function RecipesScreen() {
     useFocusEffect(useCallback(() => { fetchRecipes(); }, [searchQuery]));
 
     return (
-        <SafeAreaView style={styles.container}>
-            <LinearGradient
-                colors={[COLORS.vert, '#1a7a4e']}
-                style={styles.header}
-            >
-                <Text style={styles.headerTitle}>Discover Recipes</Text>
-
-                {/* Search Input */}
-                <View style={styles.searchContainer}>
-                    <Icon name="magnify" size={24} color="#999" style={styles.searchIcon} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search recipes..."
-                        placeholderTextColor="#999"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
-            </LinearGradient>
-
-            {/* Content Container */}
-            <ScrollView
-                contentContainerStyle={styles.contentContainer}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Create Recipe Button */}
-                <TouchableOpacity
-                    style={styles.createButton}
-                    onPress={() => navigation.navigate('CreateRecipe')}
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={[COLORS.vert, '#1a7a4e']}
+                    style={styles.header}
                 >
-                    <LinearGradient
-                        colors={[COLORS.orange, '#f05a1a']}
-                        style={styles.gradientButton}
+                    <Text style={styles.headerTitle}>Discover Recipes</Text>
+
+                    <View style={styles.searchContainer}>
+                        <Icon name="magnify" size={24} color="#999" style={styles.searchIcon} />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Search recipes..."
+                            placeholderTextColor="#999"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                    </View>
+                </LinearGradient>
+
+                <ScrollView
+                    contentContainerStyle={styles.contentContainer}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Create Recipe Button */}
+                    <TouchableOpacity
+                        style={styles.createButton}
+                        onPress={() => navigation.navigate('CreateRecipe')}
                     >
-                        <Icon name="plus" size={24} color={COLORS.white} />
-                        <Text style={styles.buttonText}>Create Recipe</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-
-                {/* Recipes Grid */}
-                <View style={styles.recipesGrid}>
-                    {(searchQuery.length === 0 ? recipesData : filteredRecipes).map(recipe => (
-                        <Pressable
-                            key={recipe._id}
-                            style={styles.recipeCard}
-                            onPress={() => handleRecipePress(recipe._id)}
+                        <LinearGradient
+                            colors={[COLORS.orange, '#f05a1a']}
+                            style={styles.gradientButton}
                         >
-                            <Image
-                                source={{ uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(recipe.title)}` }}
-                                style={styles.recipeImage}
-                            />
+                            <Icon name="plus" size={24} color={COLORS.white} />
+                            <Text style={styles.buttonText}>Create Recipe</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
 
-                            <View style={styles.recipeContent}>
-                                <Text style={styles.recipeTitle}>{recipe.title}</Text>
+                    {/* Recipes Grid */}
+                    <View style={styles.recipesGrid}>
+                        {(searchQuery.length === 0 ? recipesData : filteredRecipes).map(recipe => (
+                            <Pressable
+                                key={recipe._id}
+                                style={styles.recipeCard}
+                                onPress={() => handleRecipePress(recipe._id)}
+                            >
+                                <Image
+                                    source={{ uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(recipe.title)}` }}
+                                    style={styles.recipeImage}
+                                />
 
-                                <View style={styles.metaContainer}>
-                                    <View style={styles.metaItem}>
-                                        <Icon name="clock-outline" size={14} color={COLORS.vert} />
-                                        <Text style={styles.metaText}>{recipe.steps?.length || 0} steps</Text>
+                                <View style={styles.recipeContent}>
+                                    <Text style={styles.recipeTitle}>{recipe.title}</Text>
+
+                                    <View style={styles.metaContainer}>
+                                        <View style={styles.metaItem}>
+                                            <Icon name="clock-outline" size={14} color={COLORS.vert} />
+                                            <Text style={styles.metaText}>{recipe.steps?.length || 0} steps</Text>
+                                        </View>
+                                        <View style={styles.metaItem}>
+                                            <Icon name="food-apple" size={14} color={COLORS.vert} />
+                                            <Text style={styles.metaText}>{recipe.ingredients.length} ingredients</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.metaItem}>
-                                        <Icon name="food-apple" size={14} color={COLORS.vert} />
-                                        <Text style={styles.metaText}>{recipe.ingredients.length} ingredients</Text>
+
+                                    <View style={styles.ratingContainer}>
+                                        {[...Array(5)].map((_, i) => (
+                                            <Icon
+                                                key={i}
+                                                name="star"
+                                                size={16}
+                                                color={i < 3 ? COLORS.orange : '#ddd'}
+                                            />
+                                        ))}
+                                    </View>
+
+                                    <View style={styles.viewButton}>
+                                        <Text style={styles.viewButtonText}>View Recipe</Text>
+                                        <Icon name="arrow-right" size={16} color={COLORS.white} />
                                     </View>
                                 </View>
-
-                                <View style={styles.ratingContainer}>
-                                    {[...Array(5)].map((_, i) => (
-                                        <Icon
-                                            key={i}
-                                            name="star"
-                                            size={16}
-                                            color={i < 3 ? COLORS.orange : '#ddd'}
-                                        />
-                                    ))}
-                                </View>
-
-                                <View style={styles.viewButton}>
-                                    <Text style={styles.viewButtonText}>View Recipe</Text>
-                                    <Icon name="arrow-right" size={16} color={COLORS.white} />
-                                </View>
-                            </View>
-                        </Pressable>
-                    ))}
-                </View>
-            </ScrollView>
+                            </Pressable>
+                        ))}
+                    </View>
+                </ScrollView>
+            </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: COLORS.vert,
+    },
     container: {
         flex: 1,
         backgroundColor: COLORS.background,
     },
     header: {
         paddingHorizontal: 24,
-        paddingTop: 40,
+        paddingTop: 20,
         paddingBottom: 30,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
@@ -224,7 +228,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
-        
+
     },
     recipeImage: {
         width: '100%',

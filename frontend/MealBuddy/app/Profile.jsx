@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { View, Image, ActivityIndicator, TouchableOpacity, Animated, ScrollView } from "react-native";
-import { ApplicationProvider, Layout, Text, Button } from "@ui-kitten/components";
-import * as eva from "@eva-design/eva";
-import { customTheme } from "./customTheme";
+import {
+    View,
+    Image,
+    ActivityIndicator,
+    TouchableOpacity,
+    Animated,
+    ScrollView,
+    StyleSheet,
+    Text
+} from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import IconFA5 from "react-native-vector-icons/FontAwesome5";
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Updates from "expo-updates";
-import { PanGestureHandler } from 'react-native-gesture-handler';
+
+const COLORS = {
+    vertClaire: '#68AA64',
+    vert: '#105F3B',
+    orange: '#E36820',
+    beige: '#FFF4E4',
+    white: '#FFFFFF',
+    background: '#F9F9F9'
+};
 
 const STATS = [
     { icon: 'fire', label: 'Active Days', value: '18' },
@@ -22,6 +35,7 @@ export default function Profile() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const fadeAnim = useState(new Animated.Value(0))[0];
+
 
     useEffect(() => {
         fetchUserInfo();
@@ -86,159 +100,242 @@ export default function Profile() {
 
     if (loading) {
         return (
-            <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={customTheme.vert} />
-            </SafeAreaView>
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.vert} />
+            </View>
         );
     }
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <ApplicationProvider {...eva} theme={customTheme}>
-                <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-                    <LinearGradient
-                        colors={[customTheme.vert, '#1a7a4e']}
-                        style={{ padding: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }}
-                    >
-                        {/* Header Section */}
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                            <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                <Image
-                                    source={{ uri: user.avatar }}
-                                    style={{
-                                        width: 80,
-                                        height: 80,
-                                        borderRadius: 40,
-                                        borderWidth: 3,
-                                        borderColor: '#FFF4E4'
-                                    }}
-                                />
-                                <View style={{ marginLeft: 15 }}>
-                                    <Text category='h5' style={{ color: '#FFF4E4', fontWeight: '700' }}>
-                                        {user.username}
-                                    </Text>
-                                    <Text category='label' style={{ color: '#FFF4E4', opacity: 0.8 }}>
-                                        {user.email}
-                                    </Text>
-                                </View>
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={[COLORS.vert, '#1a7a4e']}
+                    style={styles.header}
+                >
+                    <View style={styles.headerContent}>
+                        <View style={styles.profileHeader}>
+                            <Image
+                                source={{ uri: user.avatar }}
+                                style={styles.avatar}
+                            />
+                            <View style={styles.profileInfo}>
+                                <Text style={styles.username}>{user.username}</Text>
+                                <Text style={styles.email}>{user.email}</Text>
                             </View>
                             <TouchableOpacity onPress={deconnexion}>
-                                <Icon name="sign-out" size={24} color="#FFF4E4" />
+                                <Icon name="sign-out" size={24} color={COLORS.white} />
                             </TouchableOpacity>
                         </View>
-                    </LinearGradient>
+                    </View>
+                </LinearGradient>
 
-                    {/* Main Content */}
+                <ScrollView
+                    contentContainerStyle={styles.contentContainer}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Bio Card */}
+                    <View style={styles.bioCard}>
+                        <View style={styles.bioHeader}>
+                            <Text style={styles.bioTitle}>About Me</Text>
+                            <TouchableOpacity>
+                                <Icon name="edit" size={18} color={COLORS.vert} />
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={styles.bioText}>
+                            {user.bio || "No bio added yet"}
+                        </Text>
+                    </View>
 
-                        <Layout style={{
-                            flex: 1,
-                            backgroundColor: customTheme.fond,
-                            marginTop: -20,
-                            borderTopLeftRadius: 30,
-                            borderTopRightRadius: 30,
-                            padding: 25
-                        }}>
-                            {/* Bio Section */}
-                            <View style={{
-                                backgroundColor: '#FFF4E4',
-                                borderRadius: 20,
-                                padding: 20,
-                                marginBottom: 25,
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.1,
-                                shadowRadius: 10,
-                                marginTop: 25
-                            }}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                    <Text category='h6' style={{ color: customTheme.vert, fontWeight: '700', marginBottom: 10 }}>
-                                        About Me
-                                    </Text>
-                                    <TouchableOpacity>
-                                        <Icon name="edit" size={18} color={customTheme.vert} />
-                                    </TouchableOpacity>
-                                </View>
-                                <Text category='s1' style={{ color: customTheme.vert, lineHeight: 22 }}>
-                                    {user.bio || "No bio added yet"}
-                                </Text>
+                    {/* Stats Grid */}
+                    <View style={styles.statsGrid}>
+                        {STATS.map((stat, index) => (
+                            <View key={index} style={styles.statCard}>
+                                <IconFA5
+                                    name={stat.icon}
+                                    size={24}
+                                    color={COLORS.orange}
+                                    style={styles.statIcon}
+                                />
+                                <Text style={styles.statValue}>{stat.value}</Text>
+                                <Text style={styles.statLabel}>{stat.label}</Text>
                             </View>
+                        ))}
+                    </View>
 
-                            {/* Stats Grid */}
-                            <View style={{
-                                flexDirection: 'row',
-                                flexWrap: 'wrap',
-                                justifyContent: 'space-between',
-                            }}>
-                                {STATS.map((stat, index) => (
-                                    <View key={index} style={{
-                                        width: '48%',
-                                        backgroundColor: '#FFF4E4',
-                                        borderRadius: 15,
-                                        padding: 15,
-                                        marginBottom: 15
-                                    }}>
-                                        <IconFA5
-                                            name={stat.icon}
-                                            size={24}
-                                            color={customTheme.orange}
-                                            style={{ marginBottom: 10 }}
-                                        />
-                                        <Text category='h5' style={{ color: customTheme.vert, fontWeight: '700' }}>
-                                            {stat.value}
-                                        </Text>
-                                        <Text category='label' style={{ color: customTheme.vert, opacity: 0.7 }}>
-                                            {stat.label}
-                                        </Text>
-                                    </View>
-                                ))}
+                    {/* Goals Card */}
+                    <View style={styles.goalsCard}>
+                        <View style={styles.goalsHeader}>
+                            <IconFA5 name="bullseye" size={20} color={COLORS.orange} />
+                            <Text style={styles.goalsTitle}>Current Goal</Text>
+                        </View>
+                        <Text style={styles.goalText}>
+                            {user.goal || "No current goal set"}
+                        </Text>
+                        <View style={styles.achievementsRow}>
+                            <View style={styles.achievementItem}>
+                                <IconFA5 name="medal" size={20} color={COLORS.vert} />
+                                <Text style={styles.achievementText}>7 Day Streak</Text>
                             </View>
-
-                            {/* Goals Section */}
-                            <View style={{
-                                backgroundColor: '#FFF4E4',
-                                borderRadius: 20,
-                                padding: 20,
-                            }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
-                                    <IconFA5
-                                        name="bullseye"
-                                        size={20}
-                                        color={customTheme.orange}
-                                        style={{ marginRight: 10 }}
-                                    />
-                                    <Text category='h6' style={{ color: customTheme.vert, fontWeight: '700' }}>
-                                        Current Goal
-                                    </Text>
-                                </View>
-                                <Text category='s1' style={{ color: customTheme.vert }}>
-                                    {user.goal || "No current goal set"}
-                                </Text>
-
-                                <View style={{
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-between',
-                                    marginTop: 20,
-                                    paddingTop: 15,
-                                    borderTopWidth: 1,
-                                    borderTopColor: '#EEE'
-                                }}>
-                                    <View style={{ alignItems: 'center' }}>
-                                        <IconFA5 name="medal" size={20} color={customTheme.vert} />
-                                        <Text category='s2' style={{ color: customTheme.vert, marginTop: 5 }}>
-                                            7 Day Streak
-                                        </Text>
-                                    </View>
-                                    <View style={{ alignItems: 'center' }}>
-                                        <IconFA5 name="trophy" size={20} color={customTheme.vert} />
-                                        <Text category='s2' style={{ color: customTheme.vert, marginTop: 5 }}>
-                                            12 Achievements
-                                        </Text>
-                                    </View>
-                                </View>
+                            <View style={styles.achievementItem}>
+                                <IconFA5 name="trophy" size={20} color={COLORS.vert} />
+                                <Text style={styles.achievementText}>12 Achievements</Text>
                             </View>
-                        </Layout>
-                </Animated.View>
-            </ApplicationProvider>
-        </SafeAreaView >
+                        </View>
+                    </View>
+                </ScrollView>
+            </View>
+        </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: COLORS.vert,
+    },
+    container: {
+        flex: 1,
+        backgroundColor: COLORS.beige,
+    },
+    header: {
+        paddingHorizontal: 24,
+        paddingTop: 40,
+        paddingBottom: 30,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+    },
+    profileHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    avatar: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        borderWidth: 3,
+        borderColor: COLORS.beige
+    },
+    profileInfo: {
+        flex: 1,
+        marginLeft: 15,
+    },
+    username: {
+        color: COLORS.white,
+        fontSize: 20,
+        fontWeight: '700',
+    },
+    email: {
+        color: COLORS.white,
+        opacity: 0.8,
+        fontSize: 14,
+    },
+    contentContainer: {
+        paddingHorizontal: 24,
+        paddingTop: 30,
+        paddingBottom: 40,
+    },
+    bioCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 25,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+    },
+    bioHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 10
+    },
+    bioTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: COLORS.vert,
+    },
+    bioText: {
+        fontSize: 14,
+        color: COLORS.vert,
+        lineHeight: 22,
+    },
+    statsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 25,
+    },
+    statCard: {
+        width: '48%',
+        backgroundColor: COLORS.white,
+        borderRadius: 15,
+        padding: 15,
+        marginBottom: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+    },
+    statIcon: {
+        marginBottom: 10
+    },
+    statValue: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: COLORS.vert,
+    },
+    statLabel: {
+        fontSize: 12,
+        color: COLORS.vert,
+        opacity: 0.8,
+    },
+    goalsCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: 20,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        marginBottom: 55,
+    },
+    goalsHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15
+    },
+    goalsTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: COLORS.vert,
+        marginLeft: 10,
+    },
+    goalText: {
+        fontSize: 14,
+        color: COLORS.vert,
+    },
+    achievementsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+        paddingTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#EEE',
+    },
+    achievementItem: {
+        alignItems: 'center',
+    },
+    achievementText: {
+        fontSize: 12,
+        color: COLORS.vert,
+        marginTop: 5,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLORS.background,
+    },
+});
