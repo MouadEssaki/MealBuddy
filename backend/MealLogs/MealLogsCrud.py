@@ -87,10 +87,23 @@ def get_meal_logs_by_date(user_id):
 def add_meal_log():
     db = current_app.config['db']
     data = request.get_json()
-    if 'nom' not in data or 'calories' not in data:
-        return jsonify({"error": "Required fields: nom, calories"}), 400
+    
+    # Vérifier les champs obligatoires au niveau racine
+    if 'user_id' not in data or 'date' not in data or 'meals' not in data:
+        return jsonify({"error": "Required fields: user_id, date, meals"}), 400
+    
+    # Vérifier que 'meals' est une liste
+    if not isinstance(data['meals'], list):
+        return jsonify({"error": "meals must be a list"}), 400
+    
+    # Vérifier chaque repas dans le tableau 'meals'
+    for meal in data['meals']:
+        if 'nom' not in meal or 'calories' not in meal:
+            return jsonify({"error": "Each meal must have nom and calories"}), 400
+    
+    # Insérer le document dans MongoDB
     result = db.MealLogs.insert_one(data)
-    return jsonify({"message": "Meal added successfully", "id": str(result.inserted_id)}), 201
+    return jsonify({"message": "Meal log added successfully", "id": str(result.inserted_id)}), 201
 
 #PATCH permet d'update sans avoir à tout envoyer (aka plus rapide)
 @meal_logs_bp.route("/MealLogs/<id>", methods=["PATCH"])
