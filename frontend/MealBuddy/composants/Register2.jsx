@@ -1,23 +1,44 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    SafeAreaView,
+    Image,
+    Modal,
+    TextInput,
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 const FOOD_COLORS = {
-  vertClaire: "#68AA64",
-  vert: "#105F3B",
-  orange: "#E36820",
-  beige: "#FFF4E4",
+    vertClaire: '#68AA64',
+    vert: '#105F3B',
+    orange: '#E36820',
+    beige: '#FFF4E4',
 };
 
 const Register2 = ({ onNext, formData, setFormData, onBack }) => {
-    const handleAvatarSelect = async () => {
+    // State for modals and URL input
+    const [modalVisible, setModalVisible] = useState(false);
+    const [urlInputVisible, setUrlInputVisible] = useState(false);
+    const [tempUrl, setTempUrl] = useState('');
+    const [imageError, setImageError] = useState(false);
+
+    // Reset imageError when formData.avatar changes
+    useEffect(() => {
+        setImageError(false);
+    }, [formData.avatar]);
+
+    // Function to launch image picker
+    const launchImagePicker = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             alert('We need gallery access to personalize your food journey!');
             return;
         }
-        
+
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -33,31 +54,33 @@ const Register2 = ({ onNext, formData, setFormData, onBack }) => {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>
-                <MaterialCommunityIcons 
-                    name="chef-hat" 
-                    size={48} 
-                    color={FOOD_COLORS.vert} 
+                <MaterialCommunityIcons
+                    name="chef-hat"
+                    size={48}
+                    color={FOOD_COLORS.vert}
                     style={styles.logo}
                 />
-                
+
                 <Text style={styles.title}>Personalize Your Profile</Text>
                 <Text style={styles.subtitle}>Add a photo to track your nutrition journey</Text>
 
                 <View style={styles.card}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.avatarContainer}
-                        onPress={handleAvatarSelect}
+                        onPress={() => setModalVisible(true)}
+                        accessibilityLabel="Select avatar image"
                     >
-                        {formData.avatar ? (
-                            <Image 
-                                source={{ uri: formData.avatar }} 
-                                style={styles.avatarImage} 
+                        {formData.avatar && !imageError ? (
+                            <Image
+                                source={{ uri: formData.avatar }}
+                                style={styles.avatarImage}
+                                onError={() => setImageError(true)}
                             />
                         ) : (
-                            <MaterialCommunityIcons 
-                                name="camera-plus" 
-                                size={40} 
-                                color={FOOD_COLORS.vertClaire} 
+                            <MaterialCommunityIcons
+                                name="camera-plus"
+                                size={40}
+                                color={FOOD_COLORS.vertClaire}
                             />
                         )}
                     </TouchableOpacity>
@@ -66,15 +89,87 @@ const Register2 = ({ onNext, formData, setFormData, onBack }) => {
                         {formData.avatar ? 'Tap to change photo' : 'Tap to add photo'}
                     </Text>
 
+                    {/* Modal for choosing input method */}
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                <TouchableOpacity
+                                    style={styles.modalButton}
+                                    onPress={() => {
+                                        setModalVisible(false);
+                                        launchImagePicker();
+                                    }}
+                                >
+                                    <Text style={styles.modalButtonText}>Select from Gallery</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.modalButton}
+                                    onPress={() => {
+                                        setModalVisible(false);
+                                        setUrlInputVisible(true);
+                                    }}
+                                >
+                                    <Text style={styles.modalButtonText}>Enter URL</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.modalButton}
+                                    onPress={() => setModalVisible(false)}
+                                >
+                                    <Text style={styles.modalButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Modal>
+
+                    {/* Modal for URL input */}
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={urlInputVisible}
+                        onRequestClose={() => setUrlInputVisible(false)}
+                    >
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                <TextInput
+                                    style={styles.urlInput}
+                                    placeholder="Enter image URL"
+                                    value={tempUrl}
+                                    onChangeText={setTempUrl}
+                                />
+                                <TouchableOpacity
+                                    style={styles.modalButton}
+                                    onPress={() => {
+                                        setFormData({ ...formData, avatar: tempUrl });
+                                        setUrlInputVisible(false);
+                                        setTempUrl('');
+                                    }}
+                                >
+                                    <Text style={styles.modalButtonText}>Set URL</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.modalButton}
+                                    onPress={() => setUrlInputVisible(false)}
+                                >
+                                    <Text style={styles.modalButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Modal>
+
                     <View style={styles.buttonGroup}>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={[styles.button, styles.backButton]}
                             onPress={onBack}
                         >
                             <Text style={styles.backButtonText}>← Previous</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={[styles.button, styles.nextButton]}
                             onPress={onNext}
                         >
@@ -178,6 +273,36 @@ const styles = StyleSheet.create({
         color: FOOD_COLORS.vert,
         fontSize: 14,
         fontWeight: '600',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        width: '80%',
+        alignItems: 'center',
+    },
+    modalButton: {
+        padding: 15,
+        width: '100%',
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        color: FOOD_COLORS.vert,
+        fontSize: 16,
+    },
+    urlInput: {
+        borderWidth: 1,
+        borderColor: FOOD_COLORS.vertClaire,
+        borderRadius: 10,
+        padding: 10,
+        width: '100%',
+        marginBottom: 20,
     },
 });
 

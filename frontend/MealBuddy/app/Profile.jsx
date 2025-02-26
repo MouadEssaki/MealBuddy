@@ -36,7 +36,6 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
     const fadeAnim = useState(new Animated.Value(0))[0];
 
-
     useEffect(() => {
         fetchUserInfo();
         Animated.timing(fadeAnim, {
@@ -53,7 +52,7 @@ export default function Profile() {
 
             if (!token || !userId) {
                 console.log("Token ou ID utilisateur manquant");
-                setLoading(false); // Arrêter le chargement si les données manquent
+                setLoading(false);
                 return;
             }
 
@@ -67,15 +66,14 @@ export default function Profile() {
 
             if (!response.ok) {
                 console.log("Erreur lors de la récupération des données utilisateur :", response.status);
-                setLoading(false); // Arrêter le chargement en cas d'erreur
+                setLoading(false);
                 return;
             }
 
             const data = await response.json();
             console.log("Données utilisateur récupérées :", data);
-            setLoading(false); // Arrêter le chargement en cas d'erreur
+            setLoading(false);
 
-            // Mise à jour du state user avec les données spécifiques
             setUser({
                 username: data.name,
                 email: data.email,
@@ -86,7 +84,7 @@ export default function Profile() {
             });
         } catch (error) {
             console.log("Erreur lors de la récupération des informations utilisateur :", error);
-            setLoading(false); // Arrêter le chargement en cas d'erreur
+            setLoading(false);
         }
     };
 
@@ -95,7 +93,7 @@ export default function Profile() {
         console.log(await AsyncStorage.getItem('currentUser'));
         await AsyncStorage.removeItem('authToken');
         await AsyncStorage.removeItem('currentUser');
-        await Updates.reloadAsync(); // Recharge toute l'application
+        await Updates.reloadAsync();
     };
 
     if (loading) {
@@ -103,6 +101,22 @@ export default function Profile() {
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.vert} />
             </View>
+        );
+    }
+
+    // Add this check for null user
+    if (!user) {
+        return (
+            <SafeAreaView style={styles.safeArea}>
+                <View style={styles.container}>
+                    <Text style={styles.errorText}>
+                        Unable to load user data. Please log in again.
+                    </Text>
+                    <TouchableOpacity onPress={deconnexion} style={styles.retryButton}>
+                        <Text style={styles.retryButtonText}>Log Out and Retry</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
         );
     }
 
@@ -134,7 +148,6 @@ export default function Profile() {
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Bio Card */}
                     <View style={styles.bioCard}>
                         <View style={styles.bioHeader}>
                             <Text style={styles.bioTitle}>About Me</Text>
@@ -147,7 +160,6 @@ export default function Profile() {
                         </Text>
                     </View>
 
-                    {/* Stats Grid */}
                     <View style={styles.statsGrid}>
                         {STATS.map((stat, index) => (
                             <View key={index} style={styles.statCard}>
@@ -163,7 +175,6 @@ export default function Profile() {
                         ))}
                     </View>
 
-                    {/* Goals Card */}
                     <View style={styles.goalsCard}>
                         <View style={styles.goalsHeader}>
                             <IconFA5 name="bullseye" size={20} color={COLORS.orange} />
