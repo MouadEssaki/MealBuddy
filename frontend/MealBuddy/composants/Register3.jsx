@@ -15,32 +15,32 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 // Color constants
 const FOOD_COLORS = {
-    vertClaire: '#68AA64',
-    vert: '#105F3B',
+    lightGreen: '#68AA64',
+    green: '#105F3B',
     orange: '#E36820',
     beige: '#FFF4E4',
 };
 
 // Goal options
 const GOAL_OPTIONS = [
-    { id: 'loss', title: 'Perte de poids', icon: 'fire', description: 'Développez des habitudes saines et durables' },
-    { id: 'maintain', title: 'Maintien de poids', icon: 'scale-balance', description: 'Conservez votre équilibre nutritionnel actuel' },
-    { id: 'gain', title: 'Gain de poids', icon: 'trending-up', description: 'Augmentez votre apport calorique de manière saine' },
+    { id: 'loss', title: 'Weight Loss', icon: 'fire', description: 'Develop healthy and sustainable habits' },
+    { id: 'maintain', title: 'Weight Maintenance', icon: 'scale-balance', description: 'Maintain your current nutritional balance' },
+    { id: 'gain', title: 'Weight Gain', icon: 'trending-up', description: 'Increase your caloric intake healthily' },
 ];
 
 // Gender options
 const GENDER_OPTIONS = [
-    { id: 'male', title: 'Homme' },
-    { id: 'female', title: 'Femme' },
+    { id: 'male', title: 'Male' },
+    { id: 'female', title: 'Female' },
 ];
 
 // Activity options
 const ACTIVITY_OPTIONS = [
-    { id: 'sedentary', title: 'Sédentaire' },
-    { id: 'light', title: 'Léger' },
-    { id: 'moderate', title: 'Modéré' },
-    { id: 'active', title: 'Actif' },
-    { id: 'veryActive', title: 'Très actif' },
+    { id: 'sedentary', title: 'Sedentary' },
+    { id: 'light', title: 'Light' },
+    { id: 'moderate', title: 'Moderate' },
+    { id: 'active', title: 'Active' },
+    { id: 'veryActive', title: 'Very Active' },
 ];
 
 // Activity icons mapping
@@ -115,7 +115,7 @@ const GoalSelection = ({ value, onChange }) => (
                 <MaterialCommunityIcons
                     name={goal.icon}
                     size={28}
-                    color={value === goal.id ? FOOD_COLORS.orange : FOOD_COLORS.vert}
+                    color={value === goal.id ? FOOD_COLORS.orange : FOOD_COLORS.green}
                 />
                 <View style={styles.optionTextContainer}>
                     <Text style={styles.optionTitle}>{goal.title}</Text>
@@ -129,11 +129,11 @@ const GoalSelection = ({ value, onChange }) => (
 // Sub-component: Personal Info Inputs
 const PersonalInfoInputs = ({ formData, setFormData }) => (
     <View style={styles.inputGroup}>
-        <Text style={styles.sectionTitle}>Informations personnelles</Text>
+        <Text style={styles.sectionTitle}>Personal Information</Text>
         <View style={styles.inputContainer}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialCommunityIcons name="calendar" size={20} color={FOOD_COLORS.vert} />
-                <Text style={[styles.label, { marginLeft: 8 }]}>Âge (années)</Text>
+                <MaterialCommunityIcons name="calendar" size={20} color={FOOD_COLORS.green} />
+                <Text style={[styles.label, { marginLeft: 8 }]}>Age (years)</Text>
             </View>
             <TextInput
                 style={styles.input}
@@ -145,8 +145,8 @@ const PersonalInfoInputs = ({ formData, setFormData }) => (
         </View>
         <View style={styles.inputContainer}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialCommunityIcons name="human-male-height" size={20} color={FOOD_COLORS.vert} />
-                <Text style={[styles.label, { marginLeft: 8 }]}>Taille (cm)</Text>
+                <MaterialCommunityIcons name="human-male-height" size={20} color={FOOD_COLORS.green} />
+                <Text style={[styles.label, { marginLeft: 8 }]}>Height (cm)</Text>
             </View>
             <TextInput
                 style={styles.input}
@@ -158,8 +158,8 @@ const PersonalInfoInputs = ({ formData, setFormData }) => (
         </View>
         <View style={styles.inputContainer}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialCommunityIcons name="weight-kilogram" size={20} color={FOOD_COLORS.vert} />
-                <Text style={[styles.label, { marginLeft: 8 }]}>Poids (kg)</Text>
+                <MaterialCommunityIcons name="weight-kilogram" size={20} color={FOOD_COLORS.green} />
+                <Text style={[styles.label, { marginLeft: 8 }]}>Weight (kg)</Text>
             </View>
             <TextInput
                 style={styles.input}
@@ -175,7 +175,7 @@ const PersonalInfoInputs = ({ formData, setFormData }) => (
 // Sub-component: Gender Selection
 const GenderSelection = ({ value, onChange }) => (
     <View style={styles.inputGroup}>
-        <Text style={styles.sectionTitle}>Genre</Text>
+        <Text style={styles.sectionTitle}>Gender</Text>
         {GENDER_OPTIONS.map((gender) => (
             <TouchableOpacity
                 key={gender.id}
@@ -185,7 +185,7 @@ const GenderSelection = ({ value, onChange }) => (
                 <MaterialCommunityIcons
                     name={gender.id === 'male' ? 'gender-male' : 'gender-female'}
                     size={24}
-                    color={value === gender.id ? FOOD_COLORS.orange : FOOD_COLORS.vert}
+                    color={value === gender.id ? FOOD_COLORS.orange : FOOD_COLORS.green}
                 />
                 <View style={styles.optionTextContainer}>
                     <Text style={styles.optionTitle}>{gender.title}</Text>
@@ -198,7 +198,7 @@ const GenderSelection = ({ value, onChange }) => (
 // Sub-component: Activity Selection
 const ActivitySelection = ({ value, onChange }) => (
     <View style={styles.inputGroup}>
-        <Text style={styles.sectionTitle}>Niveau d'activité</Text>
+        <Text style={styles.sectionTitle}>Activity Level</Text>
         {ACTIVITY_OPTIONS.map((activity) => (
             <TouchableOpacity
                 key={activity.id}
@@ -208,7 +208,7 @@ const ActivitySelection = ({ value, onChange }) => (
                 <MaterialCommunityIcons
                     name={ACTIVITY_ICONS[activity.id]}
                     size={24}
-                    color={value === activity.id ? FOOD_COLORS.orange : FOOD_COLORS.vert}
+                    color={value === activity.id ? FOOD_COLORS.orange : FOOD_COLORS.green}
                 />
                 <View style={styles.optionTextContainer}>
                     <Text style={styles.optionTitle}>{activity.title}</Text>
@@ -243,7 +243,7 @@ const Register3 = ({ onNext, onBack, formData, setFormData }) => {
             });
             onNext({ ...formData, nutritionalGoals });
         } catch (error) {
-            Alert.alert('Erreur', 'Veuillez vérifier vos informations.');
+            Alert.alert('Error', 'Please check your information.');
         }
     };
 
@@ -255,11 +255,11 @@ const Register3 = ({ onNext, onBack, formData, setFormData }) => {
                         <MaterialCommunityIcons
                             name="target"
                             size={48}
-                            color={FOOD_COLORS.vert}
+                            color={FOOD_COLORS.green}
                             style={styles.logo}
                         />
-                        <Text style={styles.title}>Définissez votre objectif</Text>
-                        <Text style={styles.subtitle}>Choisissez la direction de votre voyage nutritionnel</Text>
+                        <Text style={styles.title}>Set Your Goal</Text>
+                        <Text style={styles.subtitle}>Choose the direction of your nutritional journey</Text>
                         <View style={styles.card}>
                             <GoalSelection
                                 value={formData.goal}
@@ -280,7 +280,7 @@ const Register3 = ({ onNext, onBack, formData, setFormData }) => {
                             )}
                             <View style={styles.buttonGroup}>
                                 <TouchableOpacity style={[styles.button, styles.backButton]} onPress={onBack}>
-                                    <Text style={styles.backButtonText}>← Retour</Text>
+                                    <Text style={styles.backButtonText}>← Back</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.button, styles.nextButton, isNextDisabled && styles.disabledButton]}
@@ -288,7 +288,7 @@ const Register3 = ({ onNext, onBack, formData, setFormData }) => {
                                     disabled={isNextDisabled}
                                 >
                                     <Text style={[styles.buttonText, isNextDisabled && styles.disabledButtonText]}>
-                                        Continuer →
+                                        Continue →
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -322,13 +322,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: '700',
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
         textAlign: 'center',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: FOOD_COLORS.vertClaire,
+        color: FOOD_COLORS.lightGreen,
         textAlign: 'center',
         marginBottom: 32,
     },
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 16,
         padding: 24,
-        shadowColor: FOOD_COLORS.vert,
+        shadowColor: FOOD_COLORS.green,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
@@ -363,11 +363,11 @@ const styles = StyleSheet.create({
     optionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
     },
     optionDescription: {
         fontSize: 14,
-        color: FOOD_COLORS.vertClaire,
+        color: FOOD_COLORS.lightGreen,
         lineHeight: 20,
     },
     inputGroup: {
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
         marginBottom: 16,
     },
     inputContainer: {
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
         marginBottom: 8,
     },
     input: {
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 12,
         fontSize: 16,
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
     },
     buttonGroup: {
         flexDirection: 'row',
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
     },
     disabledButton: {
-        backgroundColor: FOOD_COLORS.vertClaire,
+        backgroundColor: FOOD_COLORS.lightGreen,
         opacity: 0.5,
         shadowOpacity: 0,
     },
@@ -429,10 +429,10 @@ const styles = StyleSheet.create({
     },
     backButton: {
         borderWidth: 1,
-        borderColor: FOOD_COLORS.vert,
+        borderColor: FOOD_COLORS.green,
     },
     backButtonText: {
-        color: FOOD_COLORS.vert,
+        color: FOOD_COLORS.green,
         fontSize: 14,
         fontWeight: '600',
     },

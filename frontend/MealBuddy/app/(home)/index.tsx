@@ -133,13 +133,16 @@ export default function App() {
     try {
       const token = await AsyncStorage.getItem('authToken');
       const userId = await AsyncStorage.getItem('currentUser');
-
+  
       if (!token || !userId) {
-        console.log("Token ou ID utilisateur manquant");
+        console.log("Token or user ID missing");
         setLoading(false);
         return;
       }
 
+      console.log("Token:", token);
+      console.log("User ID:", userId);  
+  
       const response = await fetch(`https://mealbuddy-smartgroup2025.azurewebsites.net/api/users/${userId}`, {
         method: 'GET',
         headers: {
@@ -147,21 +150,24 @@ export default function App() {
           'Content-Type': 'application/json'
         }
       });
-
+  
       if (!response.ok) {
-        console.log("Erreur lors de la récupération des données utilisateur :", response.status);
+        console.log("Error fetching user data:", response.status, await response.text());
         setLoading(false);
         return;
       }
-
+  
       const data = await response.json();
+      console.log("Full API Response:", data); // Log the full response for debugging
+  
       setUser({
-        username: data.username,
-        email: data.email,
+        _id: data._id || '', // Include _id if needed
+        username: data.username || '',
+        email: data.email || '',
         avatar: data.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
-        bio: data.bio,
-        goal: data.goal,
-        preferences: data.preferences,
+        bio: data.bio || '',
+        goal: data.goal || '',
+        preferences: data.preferences || [],
         age: data.age || '',
         height: data.height || '',
         weight: data.weight || '',
@@ -174,16 +180,17 @@ export default function App() {
           fats: data.nutritionalGoals?.fats || ''
         }
       });
-      
+  
       setTotalCalories(Number(data.nutritionalGoals?.calories) || NaN);
       setMacros({
         carbs: { ...macros.carbs, goal: Number(data.nutritionalGoals?.carbs) || NaN },
         protein: { ...macros.protein, goal: Number(data.nutritionalGoals?.protein) || NaN },
         fat: { ...macros.fat, goal: Number(data.nutritionalGoals?.fats) || NaN },
       });
+  
       setLoading(false);
     } catch (error) {
-      console.log("Erreur lors de la récupération des informations utilisateur :", error);
+      console.log("Error fetching user info:", error.message);
       setLoading(false);
     }
   };
