@@ -38,7 +38,6 @@ export default function Profile() {
 
     useEffect(() => {
         fetchUserInfo();
-        checkStreak({ totalCalories, setStreak });
 
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -56,6 +55,15 @@ export default function Profile() {
             fetchData();
         }, []) // Add dependency here
     );
+
+    useEffect(() => {
+        if (user && user.nutritionalGoals) {
+            const totalCalories = user.nutritionalGoals.calories;
+            if (totalCalories) {
+                checkStreak({ totalCalories, setStreak });
+            }
+        }
+    }, [user]);
 
     const fetchUserInfo = async () => {
         try {
@@ -352,71 +360,85 @@ export default function Profile() {
 
 const styles = StyleSheet.create({
     streakCard: {
-        backgroundColor: '#FFF4E4',
         borderRadius: 20,
-        padding: 20,
-        marginTop: 20,
-
+        marginHorizontal: 20,
+        marginBottom: 35,
+        overflow: 'hidden',
+        elevation: 8,
+        shadowColor: '#FF6B6B',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        marginTop: 25,
+        
     },
     gradient: {
-        paddingVertical: 20,
-        paddingHorizontal: 25,
-        borderRadius: 20,
+        padding: 20,
     },
     streakHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        marginBottom: 15,
     },
     flameContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        position: 'relative',
+        marginRight: 15,
     },
     flameIcon: {
-        marginRight: 10,
+        textShadowColor: 'rgba(255,107,107,0.5)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 8,
     },
     flameSparkles: {
-        flexDirection: 'row',
+        position: 'absolute',
+        top: -10,
+        left: -5,
     },
     sparkle1: {
-        marginRight: 5,
+        position: 'absolute',
+        top: 5,
+        left: 25,
+        transform: [{ rotate: '-20deg' }],
     },
     sparkle2: {
-        marginLeft: 5,
+        position: 'absolute',
+        top: -5,
+        left: 10,
+        transform: [{ rotate: '15deg' }],
     },
     streakTitle: {
-        fontSize: 36,
+        fontSize: 42,
         fontWeight: '800',
         color: '#FFF4E4',
+        letterSpacing: -1,
     },
     streakSubtitle: {
-        fontSize: 14,
-        fontWeight: '400',
-        color: '#FFF4E4',
+        fontSize: 16,
+        color: 'rgba(255,244,228,0.9)',
+        letterSpacing: 1,
+        marginTop: -5,
     },
     streakProgress: {
-        marginTop: 20,
-        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 10,
+        padding: 12,
     },
     progressBar: {
-        height: 8,
-        backgroundColor: '#FF6B6B',
-        borderRadius: 5,
+        height: 6,
+        backgroundColor: '#FFF4E4',
+        borderRadius: 3,
         marginBottom: 10,
     },
     streakPhrase: {
+        color: '#FFF4E4',
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFF4E4',
-        textAlign: 'center',
+        letterSpacing: 0.5,
     },
     noStreakText: {
-        fontSize: 16,
-        fontWeight: '600',
         color: '#FFF4E4',
+        fontSize: 16,
         textAlign: 'center',
-        marginTop: 20,
+        paddingVertical: 8,
     },
-
-
-})
+});
