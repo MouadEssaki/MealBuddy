@@ -42,6 +42,6 @@ export const checkStreak = async ({
             isValidDate = false;
         }
     }
-
+    console.log('Current streak:', currentStreak);
     setStreak(currentStreak);
 };
