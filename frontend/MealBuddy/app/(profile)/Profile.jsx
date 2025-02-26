@@ -13,12 +13,6 @@ import { PanGestureHandler } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
 
-const STATS = [
-    { icon: 'fire', label: 'Active Days', value: '18' },
-    { icon: 'apple', label: 'Meals Logged', value: '247' },
-    { icon: 'tint', label: 'Water Tracked', value: '58L' },
-    { icon: 'leaf', label: 'Veggie Meals', value: '89' },
-];
 
 export default function Profile() {
     const [user, setUser] = useState(null);
@@ -170,35 +164,7 @@ export default function Profile() {
                             </Text>
                         </View>
 
-                        {/* Stats Grid */}
-                        <View style={{
-                            flexDirection: 'row',
-                            flexWrap: 'wrap',
-                            justifyContent: 'space-between',
-                        }}>
-                            {STATS.map((stat, index) => (
-                                <View key={index} style={{
-                                    width: '48%',
-                                    backgroundColor: '#FFF4E4',
-                                    borderRadius: 15,
-                                    padding: 15,
-                                    marginBottom: 15
-                                }}>
-                                    <IconFA5
-                                        name={stat.icon}
-                                        size={24}
-                                        color={customTheme.orange}
-                                        style={{ marginBottom: 10 }}
-                                    />
-                                    <Text category='h5' style={{ color: customTheme.vert, fontWeight: '700' }}>
-                                        {stat.value}
-                                    </Text>
-                                    <Text category='label' style={{ color: customTheme.vert, opacity: 0.7 }}>
-                                        {stat.label}
-                                    </Text>
-                                </View>
-                            ))}
-                        </View>
+
 
                         {/* Goals Section */}
                         <View style={{
