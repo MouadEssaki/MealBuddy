@@ -54,6 +54,83 @@ export default function AddMeal() {
         }
     };
 
+    const normalizeAdvancedMeal = (advancedMeal) => {
+        // Extract quantity number from quantity_measurement (e.g., "100g" → 100)
+        const quantityMatch = advancedMeal.quantity_measurement.match(/\d+/);
+        const quantity = quantityMatch ? parseInt(quantityMatch[0], 10) : 0;
+    
+        return {
+            nom: advancedMeal.name,
+            calories: advancedMeal.nutritional_info.calories,
+            nutrients: {
+                protein: advancedMeal.nutritional_info.proteins || 0,
+                carbs: advancedMeal.nutritional_info.carbs || 0,
+                fats: advancedMeal.nutritional_info.fats || 0,
+                // Optional: Include additional nutrients if needed
+                fiber: advancedMeal.nutritional_info.fiber || 0,
+                sugars: advancedMeal.nutritional_info.sugars || 0,
+                sodium: advancedMeal.nutritional_info.sodium || 0,
+                cholesterol: advancedMeal.nutritional_info.cholesterol || 0
+            },
+            quantity: quantity,
+            quantity_measurement: advancedMeal.quantity_measurement, // Retain for SelectedMeal
+            quantity_description: advancedMeal.quantity_description, // Retain for SelectedMeal
+            // No _id since it’s not in the database yet; could add a temporary id if needed
+        };
+    };
+
+    /*
+    const fetchAdvancedResearch = async () => {
+        try {
+            setAdvancedResearchLoading(true);
+            const settings = {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ search_term: research }),
+            };
+            const response = await fetch(apiAdvancedResearch, settings);
+            if (!response.ok) {
+                throw new Error('Failed to fetch advanced data');
+            }
+            const data = await response.json();
+            console.log('Advanced Research Response:', data);
+    
+            let results = [];
+            if (data.results) {
+                const cleanedResults = data.results.replace(/'/g, '"');
+                try {
+                    results = JSON.parse(cleanedResults);
+                    if (!Array.isArray(results)) {
+                        results = [results];
+                    }
+                } catch (parseError) {
+                    console.error('Failed to parse results:', parseError);
+                    results = [];
+                }
+            }
+    
+            // Normalize the advanced research results
+            const normalizedResults = results.map(normalizeAdvancedMeal);
+            
+            setFilteredMeal(normalizedResults);
+            setMeal(prevMeal => [...prevMeal, ...normalizedResults]); // Add to main meal list
+            setStillNotThere(true);
+            
+            if (normalizedResults.length === 0) {
+                setError('No results found');
+            } else {
+                setError(null);
+            }
+        } catch (error) {
+            console.error('Failed to fetch advanced data:', error);
+            setError('Failed to fetch advanced data');
+        } finally {
+            setAdvancedResearchLoading(false);
+        }
+    };*/
     const fetchAdvancedResearch = async () => {
         try {
             setAdvancedResearchLoading(true);

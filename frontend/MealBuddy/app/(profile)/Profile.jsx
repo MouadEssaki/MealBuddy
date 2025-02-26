@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { checkStreak } from '@/composants/checkStreak';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFocusEffect } from 'expo-router';
+import {deleteAllData} from '../../database/personnalData'
 
 
 const defaultStats = [
@@ -151,6 +152,7 @@ export default function Profile() {
         //console.log(await AsyncStorage.getItem('currentUser'));
         await AsyncStorage.removeItem('authToken');
         await AsyncStorage.removeItem('currentUser');
+        await deleteAllData()
         await Updates.reloadAsync(); // Recharge toute l'application
     };
 

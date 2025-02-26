@@ -63,7 +63,7 @@ const SelectedMeal = () => {
             await addMealItem(selectedDate, mealType, updatedMeal);
     
             // Étape 2 : Synchroniser avec l’API
-            await syncMealWithAPI(selectedDate, mealType, updatedMeal);
+            //await syncMealWithAPI(selectedDate, mealType, updatedMeal);
     
             // Naviguer en arrière après succès
             navigation.dispatch(StackActions.pop(2));
