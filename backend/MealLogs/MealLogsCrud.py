@@ -9,6 +9,7 @@ meal_logs_bp = Blueprint('meal_logs', __name__, url_prefix='/api')
 # --------------------------------------------------------------------------
 # Meal Logs Routes
 # --------------------------------------------------------------------------
+SECRET_KEY = 'FTOURI'
 
 def verify_token(token):
     try:

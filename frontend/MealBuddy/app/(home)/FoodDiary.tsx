@@ -131,6 +131,15 @@ export default function FoodDiary ({ navigation }) {
             );
     };
 
+    const StatPill = ({ label, value, unit }) => (
+        <View style={styles.statPill}>
+            <Text category='c2' appearance='hint'>{label}</Text>
+            <Text category='h5' style={styles.statValue}>
+                {value}<Text category='c1' appearance='hint'> {unit}</Text>
+            </Text>
+        </View>
+    );
+
     const renderMealCard = (meal) => (
         <TouchableOpacity
             key={meal.id}
