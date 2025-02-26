@@ -90,7 +90,6 @@ export default function Profile() {
         await Updates.reloadAsync(); // Recharge toute l'application
     };
 
-
     if (loading) {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
