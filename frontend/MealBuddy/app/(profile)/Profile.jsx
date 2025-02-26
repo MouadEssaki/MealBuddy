@@ -16,6 +16,12 @@ import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFocusEffect } from 'expo-router';
 
 
+const defaultStats = [
+    { icon: 'user-clock', label: 'Age', value: null },
+    { icon: 'ruler', label: 'height', value: null },
+    { icon: 'weight', label: 'Weight', value: null },
+    { icon: 'transgender', label: 'Gender', value: null },
+];
 
 
 
@@ -25,6 +31,7 @@ export default function Profile() {
     const fadeAnim = useState(new Animated.Value(0))[0];
     const [streak, setStreak] = useState(0);
     const [totalCalories, setTotalCalories] = useState(2500);
+    const [stats, setstats] = useState(defaultStats)
 
 
     const navigation = useNavigation();
@@ -102,6 +109,14 @@ export default function Profile() {
                     fats: data.nutritionalGoals?.fats || ''
                 }
             });
+
+            setstats([
+                { icon: 'user-clock', label: 'Age', value: data.age },
+                { icon: 'ruler', label: 'height', value: data.height },
+                { icon: 'balance-scale', label: 'Weight', value: data.weight },
+                { icon: 'transgender', label: 'Gender', value: data.gender },
+            ])
+
         } catch (error) {
             console.log("Erreur lors de la récupération des informations utilisateur :", error);
             setLoading(false); // Arrêter le chargement en cas d'erreur
@@ -202,6 +217,37 @@ export default function Profile() {
                                 {user.bio || "No bio added yet"}
                             </Text>
                         </View>
+
+                        {/* Stats Grid */}
+                        <View style={{
+                            flexDirection: 'row',
+                            flexWrap: 'wrap',
+                            justifyContent: 'space-between',
+                        }}>
+                            {stats.map((stat, index) => (
+                                <View key={index} style={{
+                                    width: '48%',
+                                    backgroundColor: '#FFF4E4',
+                                    borderRadius: 15,
+                                    padding: 15,
+                                    marginBottom: 15
+                                }}>
+                                    <IconFA5
+                                        name={stat.icon}
+                                        size={24}
+                                        color={customTheme.orange}
+                                        style={{ marginBottom: 10 }}
+                                    />
+                                    <Text category='h5' style={{ color: customTheme.vert, fontWeight: '700' }}>
+                                        {stat.value}
+                                    </Text>
+                                    <Text category='label' style={{ color: customTheme.vert, opacity: 0.7 }}>
+                                        {stat.label}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+
 
 
 
