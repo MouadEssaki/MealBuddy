@@ -10,7 +10,7 @@ import {
   Animated
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, set } from 'date-fns';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getMealPlan } from '../../database/personnalData';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,14 +31,24 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({
-    username: 'mahmoud',
+    username: '',
     email: '',
     avatar: '',
     bio: '',
     goal: '',
-    preferences: ''
+    preferences: '',
+    age: '',
+    height: '',
+    weight: '',
+    gender: '',
+    activityLevel: '',
+    nutritionalGoals: {
+      calories: '',
+      protein: '',
+      carbs: '',
+      fats: ''
+    }
   });
-  const [totalCalories, setTotalCalories] = useState(2500);
   const [consumedCalories, setConsumedCalories] = useState({
     breakfast: 0,
     lunch: 0,
@@ -46,6 +56,7 @@ export default function App() {
   });
   const [alimentAdded, setAlimentAdded] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [totalCalories, setTotalCalories] = useState(2500);
   const [macros, setMacros] = useState({
     carbs: { consumed: 0, goal: 300 },
     protein: { consumed: 0, goal: 150 },
@@ -150,7 +161,25 @@ export default function App() {
         avatar: data.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
         bio: data.bio,
         goal: data.goal,
-        preferences: data.preferences
+        preferences: data.preferences,
+        age: data.age || '',
+        height: data.height || '',
+        weight: data.weight || '',
+        gender: data.gender || '',
+        activityLevel: data.activityLevel || '',
+        nutritionalGoals: {
+          calories: data.nutritionalGoals?.calories || '',
+          protein: data.nutritionalGoals?.protein || '',
+          carbs: data.nutritionalGoals?.carbs || '',
+          fats: data.nutritionalGoals?.fats || ''
+        }
+      });
+      
+      setTotalCalories(Number(data.nutritionalGoals?.calories) || NaN);
+      setMacros({
+        carbs: { ...macros.carbs, goal: Number(data.nutritionalGoals?.carbs) || NaN },
+        protein: { ...macros.protein, goal: Number(data.nutritionalGoals?.protein) || NaN },
+        fat: { ...macros.fat, goal: Number(data.nutritionalGoals?.fats) || NaN },
       });
       setLoading(false);
     } catch (error) {
